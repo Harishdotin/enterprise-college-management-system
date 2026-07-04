@@ -1,0 +1,87 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Communication Center | College Management System{% endblock %}
+
+{% block page_title %}Internal Communications{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <a href="?tab=inbox" class="btn-secondary" style="{% if tab != 'sent' %}background: var(--gold); color: #000; font-weight: 600;{% endif %} padding: 8px 20px; text-decoration: none;">
+                <i class="fa-solid fa-inbox"></i> Inbox
+            </a>
+            <a href="?tab=sent" class="btn-secondary" style="{% if tab == 'sent' %}background: var(--gold); color: #000; font-weight: 600;{% endif %} padding: 8px 20px; text-decoration: none;">
+                <i class="fa-solid fa-paper-plane"></i> Sent Items
+            </a>
+        </div>
+        <button type="button" onclick="document.getElementById('composeModal').style.display='flex'" class="btn-primary" style="width: auto; padding: 10px 20px;">
+            <i class="fa-solid fa-pen"></i> Compose Message
+        </button>
+    </div>
+
+    <!-- Messages Table -->
+    <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                    <th style="padding: 12px 15px;">{% if tab == 'sent' %}Recipient{% else %}Sender{% endif %}</th>
+                    <th style="padding: 12px 15px;">Subject</th>
+                    <th style="padding: 12px 15px;">Date</th>
+                    <th style="padding: 12px 15px; text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for msg in messages_list %}
+                <tr style="border-bottom: 1px solid var(--card-border); {% if not msg.is_read and tab != 'sent' %}font-weight: 600; background: rgba(212,175,55,0.03);{% endif %}">
+                    <td style="padding: 12px 15px;">
+                        {% if tab == 'sent' %}
+                            <strong style="color: var(--gold);">{{ msg.recipient.get_full_name|default:msg.recipient.username }}</strong>
+                        {% else %}
+                            <strong style="color: var(--gold);">{{ msg.sender.get_full_name|default:msg.sender.username }}</strong>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 12px 15px; color: #FFF;">{{ msg.subject }}</td>
+                    <td style="padding: 12px 15px; color: var(--text-secondary);">{{ msg.sent_at|date:"M j, H:i" }}</td>
+                    <td style="padding: 12px 15px; text-align: right;">
+                        <a href="{% url 'message_detail' msg.id %}" class="btn-secondary" style="padding: 4px 10px; font-size: 11px; text-decoration: none;">Read</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="padding: 40px; text-align: center; color: var(--text-secondary);">No messages in this folder.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Compose Modal -->
+<div id="composeModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:1000; justify-content:center; align-items:center;">
+    <div class="glass-panel" style="padding:30px; width: 100%; max-width: 500px; border-color: rgba(212,175,55,0.3);">
+        <h3 style="color: var(--gold); margin-bottom: 15px;">New Direct Message</h3>
+        <form method="POST" action="{% url 'message_compose' %}">
+            {% csrf_token %}
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <div class="form-group">
+                    <label class="form-label">Recipient *</label>
+                    {{ compose_form.recipient }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Subject *</label>
+                    {{ compose_form.subject }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Message Body *</label>
+                    {{ compose_form.body }}
+                </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top: 20px;">
+                <button type="button" onclick="document.getElementById('composeModal').style.display='none'" class="btn-secondary" style="width:auto;">Cancel</button>
+                <button type="submit" class="btn-primary" style="width:auto; padding:10px 25px;">Send Message</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

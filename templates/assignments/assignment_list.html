@@ -1,0 +1,78 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Assignments | College Management System{% endblock %}
+
+{% block page_title %}Assignments{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
+        <div>
+            <h2 class="section-title" style="margin-bottom: 5px;"><i class="fa-solid fa-scroll"></i> Academic Assignments</h2>
+            <p style="color: var(--text-secondary); font-size: 13px;">View course assignments, deadlines, and submission statuses</p>
+        </div>
+        {% if user.role == 'SUPER_ADMIN' or user.role == 'STAFF' %}
+        <a href="{% url 'assignment_add' %}" class="btn-primary" style="width: auto; padding: 10px 20px;">
+            <i class="fa-solid fa-plus"></i> Post Assignment
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Filters -->
+    <form method="GET" style="display: flex; gap: 15px; margin-bottom: 25px; align-items: end; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px;">
+            <label for="search" class="form-label">Search Assignment</label>
+            <input type="text" name="search" id="search" class="form-input" placeholder="Title or subject code..." value="{{ query_params.search|default:'' }}" style="padding-left:10px;">
+        </div>
+        <div style="min-width: 200px;">
+            <label for="subject" class="form-label">Subject</label>
+            <select name="subject" id="subject" class="form-input" style="padding-left:10px;">
+                <option value="">All Subjects</option>
+                {% for sub in subjects %}
+                <option value="{{ sub.id }}" {% if query_params.subject == sub.id|slugify %}selected{% endif %}>{{ sub.name }} ({{ sub.code }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn-primary" style="width: auto; padding: 10px 20px;">Filter</button>
+    </form>
+
+    <!-- Assignments Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+        {% for assignment in assignments %}
+        <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between; border-color: rgba(212,175,55,0.2);">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                    <span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 12px; background: rgba(212,175,55,0.1); color: var(--gold); border: 1px solid rgba(212,175,55,0.2);">
+                        {{ assignment.subject.code }}
+                    </span>
+                    <small style="color: var(--text-secondary); font-size: 11px;">Max: {{ assignment.maximum_marks }} pts</small>
+                </div>
+                <h3 style="font-size: 16px; font-weight: 700; color: #FFF; margin-bottom: 8px;">{{ assignment.title }}</h3>
+                <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">{{ assignment.description|truncatewords:20 }}</p>
+            </div>
+
+            <div style="border-top: 1px solid var(--card-border); padding-top: 12px; margin-top: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 12px;">
+                    <span style="color: var(--text-secondary);"><i class="fa-regular fa-clock"></i> Due: {{ assignment.due_date|date:"M j, H:i" }}</span>
+                    {% if user.role == 'STUDENT' %}
+                        {% if assignment.student_submission %}
+                            <span style="color: #6EE7B7; font-weight: 600;"><i class="fa-solid fa-check-circle"></i> Submitted</span>
+                        {% else %}
+                            <span style="color: #FCA5A5; font-weight: 600;"><i class="fa-solid fa-circle-exclamation"></i> Pending</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                <a href="{% url 'assignment_detail' assignment.id %}" class="btn-secondary" style="display: block; text-align: center; text-decoration: none; padding: 8px;">
+                    View Details & Submissions
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: var(--text-secondary);">
+            <i class="fa-solid fa-scroll" style="font-size: 40px; color: var(--card-border); margin-bottom: 15px; display: block;"></i>
+            <h3>No Assignments Found</h3>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

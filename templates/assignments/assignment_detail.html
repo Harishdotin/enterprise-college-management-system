@@ -1,0 +1,164 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}{{ assignment.title }} | College Management System{% endblock %}
+
+{% block page_title %}Assignment Details{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 30px; max-width: 900px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid var(--card-border); padding-bottom: 20px; margin-bottom: 25px;">
+        <div>
+            <span style="font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px; background: rgba(212,175,55,0.1); color: var(--gold); border: 1px solid rgba(212,175,55,0.2);">
+                {{ assignment.subject.name }} ({{ assignment.subject.code }})
+            </span>
+            <h2 style="font-size: 22px; font-weight: 700; color: #FFF; margin-top: 10px;">{{ assignment.title }}</h2>
+            <p style="color: var(--text-secondary); font-size: 13px; margin-top: 5px;">Posted by {{ assignment.created_by.get_full_name|default:assignment.created_by.username }}</p>
+        </div>
+        <div style="text-align: right; font-size: 13px;">
+            <div style="color: var(--gold); font-weight: 600;">Max Marks: {{ assignment.maximum_marks }}</div>
+            <div style="color: var(--text-secondary); margin-top: 4px;"><i class="fa-regular fa-clock"></i> Due: {{ assignment.due_date|date:"F j, Y H:i" }}</div>
+        </div>
+    </div>
+
+    <div style="font-size: 14px; line-height: 1.6; color: #E5E7EB; margin-bottom: 30px;">
+        <h4 style="font-weight: 600; color: var(--gold); margin-bottom: 8px;">Instructions / Description:</h4>
+        <p>{{ assignment.description|linebreaks }}</p>
+        {% if assignment.file %}
+        <div style="margin-top: 15px;">
+            <a href="{{ assignment.file.url }}" class="btn-secondary" target="_blank" style="display: inline-block; padding: 8px 15px; text-decoration: none;">
+                <i class="fa-solid fa-paperclip"></i> Download Attached Reference File
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if user.role == 'STUDENT' %}
+    <!-- Student Submission Panel -->
+    <div class="glass-card" style="padding: 25px; border-color: rgba(212,175,55,0.3);">
+        <h3 style="font-size: 16px; font-weight: 700; color: var(--gold); margin-bottom: 15px;"><i class="fa-solid fa-upload"></i> Your Submission</h3>
+        {% if submission %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; font-size: 13px; margin-bottom: 15px;">
+                <div>
+                    <span style="color: var(--text-secondary); display: block;">Submitted At:</span>
+                    <strong>{{ submission.submitted_at|date:"M j, Y H:i" }}</strong>
+                    {% if submission.is_late %}<span style="color: var(--danger); font-size: 11px; font-weight:600;">(LATE)</span>{% endif %}
+                </div>
+                <div>
+                    <span style="color: var(--text-secondary); display: block;">Grade / Score:</span>
+                    <strong style="color: var(--gold);">{% if submission.marks_obtained %}{{ submission.marks_obtained }} / {{ assignment.maximum_marks }}{% else %}Pending Evaluation{% endif %}</strong>
+                </div>
+                <div>
+                    <span style="color: var(--text-secondary); display: block;">Submitted File:</span>
+                    <a href="{{ submission.file.url }}" target="_blank" style="color: var(--gold);">View Submitted File</a>
+                </div>
+            </div>
+            {% if submission.faculty_comments %}
+            <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 6px; font-size: 12px; border-left: 3px solid var(--gold);">
+                <strong>Faculty Feedback:</strong> {{ submission.faculty_comments }}
+            </div>
+            {% endif %}
+            <hr style="border-color: var(--card-border); margin: 20px 0;">
+            <h4 style="font-size: 13px; color: var(--text-secondary); margin-bottom: 10px;">Re-submit / Replace File:</h4>
+        {% endif %}
+
+        <form method="POST" action="{% url 'assignment_submit' assignment.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group" style="margin-bottom: 15px;">
+                {{ submission_form.file }}
+                <small style="color: var(--text-secondary); font-size: 11px; display: block; margin-top: 5px;">Allowed files: PDF, DOCX, PPT, ZIP, Images, MP4. Max size: 5MB.</small>
+            </div>
+            <button type="submit" class="btn-primary" style="width: auto; padding: 10px 25px;">
+                <i class="fa-solid fa-paper-plane"></i> Submit Work
+            </button>
+        </form>
+    </div>
+    {% else %}
+    <!-- Faculty Roster Submissions Queue -->
+    <div style="margin-top: 40px;">
+        <h3 class="section-title" style="margin-bottom: 20px;"><i class="fa-solid fa-users-viewfinder"></i> Student Submissions ({{ submissions.count }})</h3>
+        <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius);">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                        <th style="padding: 12px 15px;">Student</th>
+                        <th style="padding: 12px 15px;">Submitted At</th>
+                        <th style="padding: 12px 15px;">Status</th>
+                        <th style="padding: 12px 15px;">Attachment</th>
+                        <th style="padding: 12px 15px;">Marks Obtained</th>
+                        <th style="padding: 12px 15px; text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sub in submissions %}
+                    <tr style="border-bottom: 1px solid var(--card-border);">
+                        <td style="padding: 12px 15px;">
+                            <strong style="color: #FFF;">{{ sub.student.full_name }}</strong><br>
+                            <small style="color: var(--gold);">{{ sub.student.register_number }}</small>
+                        </td>
+                        <td style="padding: 12px 15px; color: var(--text-secondary);">{{ sub.submitted_at|date:"M j, H:i" }}</td>
+                        <td style="padding: 12px 15px;">
+                            {% if sub.is_late %}
+                            <span style="color: var(--danger); font-size: 11px; font-weight:600;">LATE</span>
+                            {% else %}
+                            <span style="color: #6EE7B7; font-size: 11px; font-weight:600;">ON TIME</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px 15px;">
+                            <a href="{{ sub.file.url }}" target="_blank" style="color: var(--gold);"><i class="fa-solid fa-download"></i> File</a>
+                        </td>
+                        <td style="padding: 12px 15px; font-weight: 600;">
+                            {% if sub.marks_obtained %}{{ sub.marks_obtained }} / {{ assignment.maximum_marks }}{% else %}--{% endif %}
+                        </td>
+                        <td style="padding: 12px 15px; text-align: right;">
+                            <button type="button" onclick="openGradeModal('{{ sub.id }}', '{{ sub.student.full_name }}', '{{ sub.marks_obtained|default:'' }}', '{{ sub.faculty_comments|default:'' }}')" class="btn-secondary" style="padding: 4px 10px; font-size: 11px;">
+                                Grade
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="padding: 30px; text-align: center; color: var(--text-secondary);">No submissions recorded yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Grade Modal -->
+    <div id="gradeModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:1000; justify-content:center; align-items:center;">
+        <div class="glass-panel" style="padding:30px; width: 100%; max-width: 450px; border-color: rgba(212,175,55,0.3);">
+            <h3 style="color: var(--gold); margin-bottom: 15px;" id="gradeModalTitle">Grade Submission</h3>
+            <form method="POST" id="gradeModalForm">
+                {% csrf_token %}
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label class="form-label">Marks Obtained (Max {{ assignment.maximum_marks }}) *</label>
+                    <input type="number" name="marks_obtained" id="gradeMarksInput" class="form-input" step="0.01" max="{{ assignment.maximum_marks }}" style="padding-left:10px;" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label">Comments / Feedback</label>
+                    <textarea name="faculty_comments" id="gradeCommentsInput" class="form-input" rows="3" style="padding-left:10px; width:100%;"></textarea>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" onclick="closeGradeModal()" class="btn-secondary" style="width:auto;">Cancel</button>
+                    <button type="submit" class="btn-primary" style="width:auto; padding:8px 20px;">Save Grade</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    function openGradeModal(subId, name, marks, comments) {
+        document.getElementById('gradeModalTitle').innerText = "Grade: " + name;
+        document.getElementById('gradeMarksInput').value = marks;
+        document.getElementById('gradeCommentsInput').value = comments;
+        document.getElementById('gradeModalForm').action = "/assignments/submission/" + subId + "/grade/";
+        document.getElementById('gradeModal').style.display = 'flex';
+    }
+    function closeGradeModal() {
+        document.getElementById('gradeModal').style.display = 'none';
+    }
+    </script>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Scholarship Rules | College Management System{% endblock %}
+
+{% block page_title %}Scholarship Management{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 25px;">
+    <!-- Title Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
+        <div>
+            <h2 class="section-title" style="margin-bottom: 5px;">
+                <i class="fa-solid fa-graduation-cap"></i> Scholarship & Grant Policies
+            </h2>
+            <p style="color: var(--text-secondary); font-size: 13px;">Manage scholarship discount parameters and adjust eligible student billings</p>
+        </div>
+        <a href="{% url 'scholarship_add' %}" class="btn-primary" style="width: auto; padding: 10px 20px;">
+            <i class="fa-solid fa-plus"></i> Configure Policy
+        </a>
+    </div>
+
+    <!-- Data Table -->
+    <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                    <th style="padding: 15px 20px;">Policy Name</th>
+                    <th style="padding: 15px 20px;">Discount Rate</th>
+                    <th style="padding: 15px 20px;">Absolute Amount</th>
+                    <th style="padding: 15px 20px;">Eligible Roster Count</th>
+                    <th style="padding: 15px 20px;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sc in scholarships %}
+                <tr style="border-bottom: 1px solid var(--card-border); transition: var(--transition);" onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 15px 20px; font-weight: 600; color: var(--gold);">{{ sc.name }}</td>
+                    <td style="padding: 15px 20px;">
+                        {% if sc.percentage > 0 %}{{ sc.percentage }}%{% else %}--{% endif %}
+                    </td>
+                    <td style="padding: 15px 20px;">
+                        {% if sc.amount > 0 %}${{ sc.amount }}{% else %}--{% endif %}
+                    </td>
+                    <td style="padding: 15px 20px;">{{ sc.eligible_students.count }} students</td>
+                    <td style="padding: 15px 20px;">
+                        <span style="font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 20px;
+                            {% if sc.is_active %}
+                                background: rgba(16, 185, 129, 0.1); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.2);
+                            {% else %}
+                                background: rgba(239, 68, 68, 0.1); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.2);
+                            {% endif %}">
+                            {% if sc.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="padding: 40px 20px; text-align: center; color: var(--text-secondary);">
+                        No scholarship policies defined yet. Click "Configure Policy" to add one.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

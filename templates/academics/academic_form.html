@@ -1,0 +1,59 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}{% if object %}Edit Record{% else %}Create Record{% endif %} | College Management System{% endblock %}
+
+{% block page_title %}Manage Academics{% endblock %}
+
+{% block dashboard_content %}
+<div style="max-width: 650px; margin: 30px auto;">
+    <div class="glass-panel" style="padding: 30px;">
+        <h2 class="section-title" style="margin-bottom: 25px;">
+            <i class="fa-solid fa-graduation-cap"></i> {% if object %}Update{% else %}Create New{% endif %} Record
+        </h2>
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; border-radius: 6px; color: var(--danger);">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>{{ form.non_field_errors|striptags }}</span>
+            </div>
+            {% endif %}
+            
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                {% for field in form %}
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 8px;">
+                    <label for="{{ field.id_for_label }}" class="form-label" style="font-weight: 500;">
+                        {{ field.label }} {% if field.field.required %}*{% endif %}
+                    </label>
+                    
+                    {{ field }}
+                    
+                    {% if field.errors %}
+                    <div style="color: var(--danger); font-size: 12px;">
+                        {{ field.errors|striptags }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if field.help_text %}
+                    <small style="color: var(--text-secondary); font-size: 11px;">
+                        {{ field.help_text }}
+                    </small>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-top: 30px; border-top: 1px solid var(--card-border); padding-top: 25px;">
+                <button type="submit" class="btn-primary" style="width: auto; padding: 12px 35px;">
+                    Save Record
+                </button>
+                <a href="javascript:history.back()" class="btn-secondary" style="display: flex; align-items: center; text-decoration: none;">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

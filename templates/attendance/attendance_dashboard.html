@@ -1,0 +1,182 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Attendance Analytics | College Management System{% endblock %}
+
+{% block page_title %}Attendance & Leaves Analytics{% endblock %}
+
+{% block dashboard_content %}
+<!-- Stats Grid -->
+<div class="stats-grid" style="margin-bottom: 30px;">
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Attendance Percentage</h3>
+            <p>{{ attendance_percentage }}%</p>
+            <small style="color: var(--text-secondary);">Average ratio for today</small>
+        </div>
+        <div class="stat-icon">
+            <i class="fa-solid fa-square-poll-vertical"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Present Students</h3>
+            <p style="color: #6EE7B7;">{{ present_count }}</p>
+            <small style="color: var(--text-secondary);">In attendance slots</small>
+        </div>
+        <div class="stat-icon" style="color: #10B981; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2);">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Absent Students</h3>
+            <p style="color: #FCA5A5;">{{ absent_count }}</p>
+            <small style="color: var(--text-secondary);">Notification alerts sent</small>
+        </div>
+        <div class="stat-icon" style="color: var(--danger); background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2);">
+            <i class="fa-solid fa-circle-xmark"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Faculty Presence</h3>
+            <p>{{ staff_present }} / {{ total_faculty }}</p>
+            <small style="color: var(--text-secondary);">Active teaching staff</small>
+        </div>
+        <div class="stat-icon">
+            <i class="fa-solid fa-user-tie"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Content Grid -->
+<div class="dashboard-grid" style="grid-template-columns: 2fr 1fr; gap: 30px;">
+    <!-- Main Panel: Actions, Absentee list, Trends -->
+    <div style="display: flex; flex-direction: column; gap: 30px;">
+        <!-- Today's Absentees -->
+        <div class="glass-panel" style="padding: 25px;">
+            <h2 class="section-title"><i class="fa-solid fa-circle-exclamation"></i> Today's Absentees</h2>
+            <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius); margin-top: 15px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                            <th style="padding: 12px 15px;">Reg Number</th>
+                            <th style="padding: 12px 15px;">Student Name</th>
+                            <th style="padding: 12px 15px;">Subject Slot</th>
+                            <th style="padding: 12px 15px;">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in recent_absentees %}
+                        <tr style="border-bottom: 1px solid var(--card-border);">
+                            <td style="padding: 12px 15px; font-weight: 600; color: var(--gold);">{{ record.student.register_number }}</td>
+                            <td style="padding: 12px 15px;">{{ record.student.full_name }}</td>
+                            <td style="padding: 12px 15px;">{{ record.subject.name|default:"General Daily" }}</td>
+                            <td style="padding: 12px 15px; color: var(--text-secondary);">{{ record.remarks|default:"--" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" style="padding: 30px; text-align: center; color: var(--text-secondary);">
+                                No absent records logged for today.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Custom Visual Trend (SVG Pie / Bar) -->
+        <div class="glass-panel" style="padding: 25px;">
+            <h2 class="section-title"><i class="fa-solid fa-chart-pie"></i> Daily Status Summary</h2>
+            <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 25px; flex-wrap: wrap; gap: 20px;">
+                <!-- Custom CSS Bar graph -->
+                <div style="display: flex; flex-direction: column; gap: 15px; flex: 1; min-width: 250px;">
+                    <div>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom: 4px;">
+                            <span>Present Ratio ({{ present_count }})</span>
+                            <strong>{% widthratio present_count marked_count|default:1 100 %}%</strong>
+                        </div>
+                        <div style="height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow:hidden;">
+                            <div style="width: {% widthratio present_count marked_count|default:1 100 %}%; height: 100%; background: #10B981;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom: 4px;">
+                            <span>Absent Ratio ({{ absent_count }})</span>
+                            <strong>{% widthratio absent_count marked_count|default:1 100 %}%</strong>
+                        </div>
+                        <div style="height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow:hidden;">
+                            <div style="width: {% widthratio absent_count marked_count|default:1 100 %}%; height: 100%; background: var(--danger);"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom: 4px;">
+                            <span>Late Status ({{ late_count }})</span>
+                            <strong>{% widthratio late_count marked_count|default:1 100 %}%</strong>
+                        </div>
+                        <div style="height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow:hidden;">
+                            <div style="width: {% widthratio late_count marked_count|default:1 100 %}%; height: 100%; background: var(--gold);"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom SVG Visual Circle -->
+                <div style="text-align: center;">
+                    <svg width="150" height="150" viewBox="0 0 36 36" style="transform: rotate(-90deg);">
+                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="3" />
+                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--gold)" stroke-width="3.2" stroke-dasharray="{{ attendance_percentage }}, 100" />
+                    </svg>
+                    <div style="margin-top: -95px; margin-bottom: 50px;">
+                        <h3 style="font-size: 20px; font-weight: 700; color: var(--gold);">{{ attendance_percentage }}%</h3>
+                        <span style="font-size: 10px; color: var(--text-secondary);">Ratio</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Panel: Bulk Options, CSV Imports -->
+    <div style="display: flex; flex-direction: column; gap: 30px;">
+        <!-- Shortcuts & Actions -->
+        <div class="glass-panel" style="padding: 25px;">
+            <h2 class="section-title"><i class="fa-solid fa-bolt"></i> Operations</h2>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
+                <a href="{% url 'mark_attendance' %}" class="btn-primary" style="text-align: center; text-decoration: none;">
+                    <i class="fa-solid fa-clipboard-user"></i> Mark Bulk Attendance
+                </a>
+                <a href="{% url 'export_attendance' %}" class="btn-secondary" style="text-align: center; text-decoration: none;">
+                    <i class="fa-solid fa-file-csv"></i> Export Attendance CSV
+                </a>
+                <a href="{% url 'leave_review_list' %}" class="btn-secondary" style="text-align: center; text-decoration: none; border-color: rgba(212,175,55,0.2); color: var(--gold);">
+                    <i class="fa-solid fa-envelope-open-text"></i> Leave Approval Queue
+                </a>
+            </div>
+        </div>
+
+        <!-- Bulk CSV Import -->
+        <div class="glass-panel" style="padding: 25px;">
+            <h2 class="section-title"><i class="fa-solid fa-cloud-arrow-up"></i> Bulk Import (CSV)</h2>
+            <p style="color: var(--text-secondary); font-size: 11px; margin-bottom: 15px; line-height: 1.5;">
+                CSV columns format: <br>
+                <code>register_number, date (YYYY-MM-DD), status (PRESENT/ABSENT/LATE/HALFDAY/LEAVE), subject_code (optional)</code>
+            </p>
+            <form method="POST" action="{% url 'import_attendance' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group" style="margin-bottom: 15px;">
+                    {{ import_form.csv_file }}
+                    {% if import_form.csv_file.errors %}
+                    <div style="color: var(--danger); font-size: 11px; margin-top: 5px;">{{ import_form.csv_file.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn-primary">
+                    <i class="fa-solid fa-file-import"></i> Upload CSV File
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

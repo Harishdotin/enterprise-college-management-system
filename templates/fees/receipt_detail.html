@@ -1,0 +1,143 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Receipt Invoice | College Management System{% endblock %}
+
+{% block page_title %}Official Payment Receipt{% endblock %}
+
+{% block dashboard_content %}
+<div style="text-align: right; margin-bottom: 25px;">
+    <button onclick="window.print()" class="btn-primary" style="width: auto; padding: 10px 25px;">
+        <i class="fa-solid fa-print"></i> Print Receipt
+    </button>
+</div>
+
+<!-- Receipt container -->
+<div class="glass-panel printable-receipt" style="padding: 40px; max-width: 700px; margin: 0 auto; background: rgba(31, 41, 55, 0.4); border-color: rgba(212,175,55,0.25);">
+    <!-- College Header -->
+    <div style="text-align: center; border-bottom: 2px solid var(--gold); padding-bottom: 15px; margin-bottom: 25px;">
+        <h2 style="color: var(--gold); font-size: 18px; font-weight: 800; text-transform: uppercase;">Apex Institute of Technology & Science</h2>
+        <p style="color: var(--text-secondary); font-size: 10px; margin-top: 5px; text-transform: uppercase;">Official E-Receipt for Payment</p>
+    </div>
+
+    <!-- Receipt Meta metadata -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 13px; margin-bottom: 30px;">
+        <div>
+            <strong style="color: var(--text-secondary); display:block; margin-bottom:4px;">Student Details:</strong>
+            <span style="font-weight: 600; color:#FFF; display:block;">{{ student.full_name }}</span>
+            <span style="color: var(--gold); font-weight: 600; display:block;">{{ student.register_number }}</span>
+            <span style="color: var(--text-secondary);">Course: {{ student.course.code }} | Semester {{ student.semester.number }}</span>
+        </div>
+        <div style="text-align: right;">
+            <strong style="color: var(--text-secondary); display:block; margin-bottom:4px;">Receipt Details:</strong>
+            <span>Receipt: <strong style="color: var(--gold);">{{ payment.receipt_number }}</strong></span><br>
+            <span>Date: {{ payment.paid_at|date:"d-m-Y H:i" }}</span><br>
+            <span>Mode: {{ payment.get_payment_mode_display }}</span><br>
+            <span>Txn ID: <small style="font-family: monospace;">{{ payment.transaction_id }}</small></span>
+        </div>
+    </div>
+
+    <!-- Ledger Details Table -->
+    <h3 style="font-size: 13px; font-weight: 700; color: var(--gold); text-transform: uppercase; margin-bottom: 12px;">Billing Items Breakdown</h3>
+    <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius); margin-bottom: 25px;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                    <th style="padding: 10px 15px;">Fee Structure Item</th>
+                    <th style="padding: 10px 15px; text-align: right;">Base Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="padding: 12px 15px;">
+                        <strong style="color:#FFF;">{{ student_fee.fee_structure.name }}</strong><br>
+                        <small style="color: var(--text-secondary);">Category: {{ student_fee.fee_structure.category.name }}</small>
+                    </td>
+                    <td style="padding: 12px 15px; text-align: right;">${{ student_fee.fee_structure.amount }}</td>
+                </tr>
+                <!-- Fine / late fees -->
+                {% if student_fee.fine_amount > 0 %}
+                <tr style="border-top: 1px solid var(--card-border);">
+                    <td style="padding: 12px 15px; color: var(--danger);"><i class="fa-solid fa-gavel"></i> Late Fines / Overdues</td>
+                    <td style="padding: 12px 15px; text-align: right; color: var(--danger); font-weight: 600;">+${{ student_fee.fine_amount }}</td>
+                </tr>
+                {% endif %}
+                <!-- Scholarship / discount -->
+                {% if student_fee.discount_amount > 0 %}
+                <tr style="border-top: 1px solid var(--card-border);">
+                    <td style="padding: 12px 15px; color: #6EE7B7;"><i class="fa-solid fa-gift"></i> Scholarships / Discounts</td>
+                    <td style="padding: 12px 15px; text-align: right; color: #6EE7B7; font-weight: 600;">-${{ student_fee.discount_amount }}</td>
+                </tr>
+                {% endif %}
+                <!-- Totals -->
+                <tr style="border-top: 2px solid var(--gold); background: rgba(255,255,255,0.01); font-weight: 700;">
+                    <td style="padding: 12px 15px; color: var(--gold);">Net Total Payable:</td>
+                    <td style="padding: 12px 15px; text-align: right; color: var(--gold);">${{ student_fee.total_due }}</td>
+                </tr>
+                <tr style="border-top: 1px solid var(--card-border); font-weight: 700;">
+                    <td style="padding: 12px 15px; color: #6EE7B7;">Amount Paid in this installment:</td>
+                    <td style="padding: 12px 15px; text-align: right; color: #6EE7B7;">${{ payment.amount_paid }}</td>
+                </tr>
+                <tr style="border-top: 1px solid var(--card-border); font-weight: 700; color: #FCA5A5;">
+                    <td style="padding: 12px 15px;">Remaining Outstanding Balance:</td>
+                    <td style="padding: 12px 15px; text-align: right;">${{ student_fee.remaining_balance }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- QR verification and signatures -->
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px; border-top: 1px dashed var(--card-border); padding-top: 25px; align-items: center;">
+        <!-- QR code placeholder -->
+        <div>
+            <div style="width: 70px; height: 70px; border: 1px solid var(--card-border); padding: 4px; background:#FFF; border-radius: 4px; display:flex; align-items:center; justify-content:center;">
+                <i class="fa-solid fa-qrcode" style="font-size: 60px; color:#000;"></i>
+            </div>
+            <small style="font-size: 8px; color: var(--text-secondary); display:block; margin-top: 5px; text-transform:uppercase;">E-Receipt Verified</small>
+        </div>
+        
+        <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; height: 80px;">
+            <div style="font-size: 11px; font-style: italic; color: #6EE7B7; border: 1.5px solid #10B981; padding: 4px 10px; border-radius: 4px; text-transform:uppercase; font-weight: 600;">
+                Transaction Approved
+            </div>
+            <span style="font-size: 10px; color: var(--text-secondary); border-top: 1px solid var(--card-border); width: 180px; padding-top: 5px; text-align: center;">Accounts Department Sign</span>
+        </div>
+    </div>
+</div>
+
+<!-- Print Styles override -->
+<style>
+@media print {
+    .navbar, .sidebar, form, .btn-primary, .btn-secondary, header {
+        display: none !important;
+    }
+    .main-wrapper {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+    .printable-receipt {
+        border: 2px solid #000 !important;
+        background: #FFF !important;
+        color: #000 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        box-shadow: none !important;
+        filter: none !important;
+    }
+    .printable-receipt h2, 
+    .printable-receipt h3,
+    .printable-receipt strong {
+        color: #000 !important;
+    }
+    .printable-receipt table, 
+    .printable-receipt td, 
+    .printable-receipt th {
+        border-color: #000 !important;
+        color: #000 !important;
+    }
+    .printable-receipt span, 
+    .printable-receipt small {
+        color: #333 !important;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Announcement Board | College Management System{% endblock %}
+
+{% block page_title %}Campus Announcements{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
+        <div>
+            <h2 class="section-title" style="margin-bottom: 5px;"><i class="fa-solid fa-bullhorn"></i> Official Campus Notice Board</h2>
+            <p style="color: var(--text-secondary); font-size: 13px;">Important university announcements, circulars, and news items</p>
+        </div>
+        {% if user.role == 'SUPER_ADMIN' or user.role == 'STAFF' %}
+        <button type="button" onclick="document.getElementById('announceModal').style.display='flex'" class="btn-primary" style="width: auto; padding: 10px 20px;">
+            <i class="fa-solid fa-plus"></i> Post Announcement
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Announcements Timeline -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        {% for announcement in announcements %}
+        <div class="glass-card" style="padding: 25px; border-left: 4px solid var(--gold);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="font-size: 18px; font-weight: 700; color: #FFF;">{{ announcement.title }}</h3>
+                <small style="color: var(--text-secondary); font-size: 11px;"><i class="fa-regular fa-clock"></i> Posted {{ announcement.publish_date|date:"F j, Y H:i" }}</small>
+            </div>
+            <div style="color: #E5E7EB; font-size: 14px; line-height: 1.6; margin-bottom: 15px;">
+                {{ announcement.content|linebreaks }}
+            </div>
+            {% if announcement.attachment %}
+            <div>
+                <a href="{{ announcement.attachment.url }}" target="_blank" class="btn-secondary" style="display: inline-block; padding: 6px 14px; font-size: 12px; text-decoration: none; color: var(--gold);">
+                    <i class="fa-solid fa-paperclip"></i> Download Attachment
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+            <i class="fa-solid fa-bullhorn" style="font-size: 40px; color: var(--card-border); margin-bottom: 15px; display: block;"></i>
+            <h3>No Active Announcements</h3>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% if user.role == 'SUPER_ADMIN' or user.role == 'STAFF' %}
+<!-- Post Announcement Modal -->
+<div id="announceModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:1000; justify-content:center; align-items:center;">
+    <div class="glass-panel" style="padding:30px; width: 100%; max-width: 550px; border-color: rgba(212,175,55,0.3); max-height: 90vh; overflow-y: auto;">
+        <h3 style="color: var(--gold); margin-bottom: 15px;">Post Campus Announcement</h3>
+        <form method="POST" action="{% url 'announcement_add' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                {% for field in form %}
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:500;">{{ field.label }}</label>
+                    {{ field }}
+                </div>
+                {% endfor %}
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top: 20px;">
+                <button type="button" onclick="document.getElementById('announceModal').style.display='none'" class="btn-secondary" style="width:auto;">Cancel</button>
+                <button type="submit" class="btn-primary" style="width:auto; padding:10px 25px;">Publish Notice</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

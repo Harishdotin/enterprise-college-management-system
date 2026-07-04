@@ -1,0 +1,156 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Student Dashboard | College Management System{% endblock %}
+
+{% block page_title %}Student Portal{% endblock %}
+
+{% block dashboard_content %}
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Attendance Percentage</h3>
+            <p>{{ attendance_percentage }}%</p>
+        </div>
+        <div class="stat-icon">
+            <i class="fa-solid fa-clipboard-user"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>GPA</h3>
+            <p>{{ gpa }}</p>
+        </div>
+        <div class="stat-icon">
+            <i class="fa-solid fa-award"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Pending Fees</h3>
+            <p style="color: var(--danger);">$250.00</p>
+        </div>
+        <div class="stat-icon" style="color: var(--danger); background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2);">
+            <i class="fa-solid fa-wallet"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Upcoming Exams</h3>
+            <p>{{ upcoming_exams }}</p>
+        </div>
+        <div class="stat-icon">
+            <i class="fa-solid fa-file-invoice"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Grid -->
+<div class="dashboard-grid">
+    <!-- Main Panel: Today's Timetable & Assignments Due -->
+    <div style="display: flex; flex-direction: column; gap: 30px;">
+        <!-- Today's Timetable -->
+        <div class="glass-panel" style="padding: 25px;">
+            <h2 class="section-title">
+                <i class="fa-solid fa-calendar-day"></i> Today's Timetable
+            </h2>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--card-border); color: var(--text-secondary);">
+                            <th style="padding: 10px 0;">Time slot</th>
+                            <th style="padding: 10px 0;">Subject</th>
+                            <th style="padding: 10px 0;">Location</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for slot in timetable_slots %}
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                            <td style="padding: 12px 0; font-weight: 600; color: var(--gold);">{{ slot.time }}</td>
+                            <td style="padding: 12px 0; color: var(--text-primary);">{{ slot.subject }}</td>
+                            <td style="padding: 12px 0; color: var(--text-secondary);">{{ slot.room }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Assignments Due -->
+        <div class="glass-panel" style="padding: 25px;">
+            <h2 class="section-title">
+                <i class="fa-solid fa-scroll"></i> Assignments Due
+            </h2>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 12px;">
+                {% for assignment in assignments %}
+                <li class="glass-card" style="padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h4 style="margin-bottom: 4px;">{{ assignment.title }}</h4>
+                        <span style="font-size: 11px; color: var(--text-secondary);">Due: {{ assignment.due }}</span>
+                    </div>
+                    <span style="font-size: 10px; font-weight: 600; padding: 4px 8px; border-radius: 20px;
+                        {% if assignment.class == 'Urgent' %}
+                            background: rgba(239, 68, 68, 0.1); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.2);
+                        {% else %}
+                            background: rgba(245, 158, 11, 0.1); color: #FDE047; border: 1px solid rgba(245, 158, 11, 0.2);
+                        {% endif %}">
+                        {{ assignment.class }}
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Side Panel: Quick Actions & Notifications -->
+    <div style="display: flex; flex-direction: column; gap: 30px;">
+        <!-- Quick Actions -->
+        <div class="glass-panel" style="padding: 25px;">
+            <h2 class="section-title">
+                <i class="fa-solid fa-bolt"></i> Quick Actions
+            </h2>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <a href="{% url 'student_self_profile' %}" class="btn-secondary" style="justify-content: flex-start; text-decoration: none;">
+                    <i class="fa-regular fa-user" style="width: 20px; color: var(--gold);"></i> View Profile
+                </a>
+                <a href="#" class="btn-secondary" style="justify-content: flex-start; text-decoration: none;">
+                    <i class="fa-regular fa-calendar-check" style="width: 20px; color: var(--gold);"></i> View Attendance
+                </a>
+                <a href="#" class="btn-secondary" style="justify-content: flex-start; text-decoration: none;">
+                    <i class="fa-solid fa-square-poll-vertical" style="width: 20px; color: var(--gold);"></i> View Results
+                </a>
+                <a href="#" class="btn-secondary" style="justify-content: flex-start; text-decoration: none;">
+                    <i class="fa-regular fa-clock" style="width: 20px; color: var(--gold);"></i> View Timetable
+                </a>
+                <a href="#" class="btn-secondary" style="justify-content: flex-start; text-decoration: none;">
+                    <i class="fa-solid fa-download" style="width: 20px; color: var(--gold);"></i> Download Assignments
+                </a>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="glass-panel" style="padding: 25px;">
+            <h2 class="section-title">
+                <i class="fa-solid fa-bullhorn"></i> Notifications
+            </h2>
+            <ul style="list-style: none;">
+                <li style="padding: 12px 0; border-bottom: 1px solid var(--card-border); font-size: 13px;">
+                    <span style="color: var(--gold); font-weight: 500;">Prof. Miller</span> assigned Homework 3
+                    <small style="display: block; color: var(--text-secondary); margin-top: 4px;">2 hours ago</small>
+                </li>
+                <li style="padding: 12px 0; border-bottom: 1px solid var(--card-border); font-size: 13px;">
+                    <span style="color: var(--gold); font-weight: 500;">Registrar</span> posted Semester fee structures
+                    <small style="display: block; color: var(--text-secondary); margin-top: 4px;">1 day ago</small>
+                </li>
+                <li style="padding: 12px 0; font-size: 13px;">
+                    <span style="color: var(--gold); font-weight: 500;">System</span> scheduled website maintenance
+                    <small style="display: block; color: var(--text-secondary); margin-top: 4px;">2 days ago</small>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block body_content %}
+<div class="app-container">
+    <!-- Sidebar -->
+    {% include 'partials/sidebar.html' %}
+
+    <!-- Main Wrapper -->
+    <div id="main-wrapper" class="main-wrapper">
+        <!-- Top Navbar -->
+        {% include 'partials/navbar.html' %}
+
+        <!-- Messages Notifications -->
+        {% if messages %}
+        <div style="padding: 20px 30px 0 30px;">
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+                    {% if message.tags == 'error' %}
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                    {% elif message.tags == 'success' %}
+                        <i class="fa-solid fa-circle-check"></i>
+                    {% else %}
+                        <i class="fa-solid fa-circle-info"></i>
+                    {% endif %}
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Content Container -->
+        <main class="content-container">
+            {% block dashboard_content %}
+            {% endblock %}
+        </main>
+
+        <!-- Footer -->
+        {% include 'partials/footer.html' %}
+    </div>
+</div>
+
+<!-- Floating AI Assistant Widget -->
+{% include 'partials/ai_widget.html' %}
+{% endblock %}

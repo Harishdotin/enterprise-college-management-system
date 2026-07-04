@@ -1,0 +1,79 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Predictive Intelligence | College Management System{% endblock %}
+
+{% block page_title %}AI Academic Predictions & Risks{% endblock %}
+
+{% block dashboard_content %}
+<!-- Recommendations alerts -->
+{% if dashboard_recs %}
+<div class="glass-panel" style="padding: 20px; margin-bottom: 30px; border-color: rgba(212,175,55,0.25);">
+    <h3 style="color: var(--gold); margin-bottom: 15px; font-size:15px;"><i class="fa-solid fa-lightbulb"></i> AI Personalized Recommendations</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+        {% for rec in dashboard_recs %}
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); padding: 15px; border-radius: 8px; border-left: 3px solid {% if rec.type == 'ALERT' %}var(--danger){% else %}var(--gold){% endif %};">
+            <strong style="color: #FFF; font-size: 13px; display:block; margin-bottom:4px;">{{ rec.title }}</strong>
+            <p style="color: var(--text-secondary); font-size: 12px; margin:0;">{{ rec.description }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Predictions Roster -->
+<div class="glass-panel" style="padding: 25px;">
+    <h2 class="section-title" style="margin-bottom: 20px;"><i class="fa-solid fa-brain"></i> Semester GPA & Attendance Risk Roster</h2>
+    
+    <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                    <th style="padding: 12px 15px;">Student</th>
+                    <th style="padding: 12px 15px;">Predicted GPA</th>
+                    <th style="padding: 12px 15px;">Pass Probability</th>
+                    <th style="padding: 12px 15px;">Attendance (Current)</th>
+                    <th style="padding: 12px 15px;">Risk Level</th>
+                    <th style="padding: 12px 15px;">Suggested Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in predictions_list %}
+                <tr style="border-bottom: 1px solid var(--card-border);">
+                    <td style="padding: 12px 15px;">
+                        <strong style="color: #FFF;">{{ p.student.full_name }}</strong><br>
+                        <small style="color: var(--gold);">{{ p.student.register_number }}</small>
+                    </td>
+                    <td style="padding: 12px 15px; font-weight: 700; color: var(--gold);">{{ p.gpa }} / 10.0</td>
+                    <td style="padding: 12px 15px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <div style="flex:1; width:80px; height:6px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden;">
+                                <div style="width: {{ p.prob }}%; height:100%; background: {% if p.prob > 80 %}#10B981{% elif p.prob > 50 %}var(--gold){% else %}var(--danger){% endif %};"></div>
+                            </div>
+                            <span>{{ p.prob }}%</span>
+                        </div>
+                    </td>
+                    <td style="padding: 12px 15px;">{{ p.risk_pct }}%</td>
+                    <td style="padding: 12px 15px;">
+                        <span style="font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 12px;
+                            {% if p.risk == 'HIGH' %}
+                                background: rgba(239, 68, 68, 0.1); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.2);
+                            {% elif p.risk == 'MEDIUM' %}
+                                background: rgba(245, 158, 11, 0.1); color: #FDE047; border: 1px solid rgba(245, 158, 11, 0.2);
+                            {% else %}
+                                background: rgba(16, 185, 129, 0.1); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.2);
+                            {% endif %}">
+                            {{ p.risk }} Risk
+                        </span>
+                    </td>
+                    <td style="padding: 12px 15px; color: var(--text-secondary); max-width: 250px;">{{ p.action }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 30px; text-align: center; color: var(--text-secondary);">No predictions metrics generated for active roster.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

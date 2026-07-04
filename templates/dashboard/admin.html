@@ -1,0 +1,102 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Admin Dashboard | College Management System{% endblock %}
+
+{% block page_title %}Administrator Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Total Students</h3>
+            <p>{{ total_students }}</p>
+        </div>
+        <div class="stat-icon">
+            <i class="fa-solid fa-user-graduate"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Active Staff</h3>
+            <p>{{ total_staff }}</p>
+        </div>
+        <div class="stat-icon">
+            <i class="fa-solid fa-user-tie"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Total Courses</h3>
+            <p>{{ total_courses }}</p>
+        </div>
+        <div class="stat-icon">
+            <i class="fa-solid fa-book"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Unpaid Invoices</h3>
+            <p>{{ pending_fees }}</p>
+        </div>
+        <div class="stat-icon">
+            <i class="fa-solid fa-wallet"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Grid -->
+<div class="dashboard-grid">
+    <!-- Main Panel -->
+    <div class="glass-panel" style="padding: 25px;">
+        <h2 class="section-title">
+            <i class="fa-solid fa-cubes"></i> Administrative Control Center
+        </h2>
+        <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px; line-height: 1.6;">
+            Welcome to the College Management System administration module. From here, you have global control over students, staff rosters, academic parameters, scheduling matrices, and financial ledger items.
+        </p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 25px;">
+            <div class="glass-card" style="padding: 20px; text-align: center;">
+                <i class="fa-solid fa-users-gear" style="font-size: 28px; color: var(--gold); margin-bottom: 15px; display: block;"></i>
+                <h4 style="margin-bottom: 10px;">User Settings</h4>
+                <p style="font-size: 12px; color: var(--text-secondary);">Manage accounts and role permissions</p>
+            </div>
+            <div class="glass-card" style="padding: 20px; text-align: center;">
+                <i class="fa-solid fa-database" style="font-size: 28px; color: var(--gold); margin-bottom: 15px; display: block;"></i>
+                <h4 style="margin-bottom: 10px;">Data Backups</h4>
+                <p style="font-size: 12px; color: var(--text-secondary);">Trigger database sync and exports</p>
+            </div>
+            <div class="glass-card" style="padding: 20px; text-align: center;">
+                <i class="fa-solid fa-gear" style="font-size: 28px; color: var(--gold); margin-bottom: 15px; display: block;"></i>
+                <h4 style="margin-bottom: 10px;">System Preferences</h4>
+                <p style="font-size: 12px; color: var(--text-secondary);">Configure general portal options</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Side Panel -->
+    <div class="glass-panel" style="padding: 25px;">
+        <h2 class="section-title">
+            <i class="fa-solid fa-clock-rotate-left"></i> System Logs
+        </h2>
+        <ul style="list-style: none;">
+            <li style="padding: 12px 0; border-bottom: 1px solid var(--card-border); font-size: 13px;">
+                <span style="color: var(--gold); font-weight: 500;">Admin</span> updated course structures
+                <small style="display: block; color: var(--text-secondary); margin-top: 4px;">5 mins ago</small>
+            </li>
+            <li style="padding: 12px 0; border-bottom: 1px solid var(--card-border); font-size: 13px;">
+                <span style="color: var(--gold); font-weight: 500;">Staff-102</span> submitted grade sheets
+                <small style="display: block; color: var(--text-secondary); margin-top: 4px;">1 hour ago</small>
+            </li>
+            <li style="padding: 12px 0; font-size: 13px;">
+                <span style="color: var(--gold); font-weight: 500;">System</span> generated weekly log backups
+                <small style="display: block; color: var(--text-secondary); margin-top: 4px;">Yesterday</small>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

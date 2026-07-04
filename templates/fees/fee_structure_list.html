@@ -1,0 +1,59 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Fee Structures | College Management System{% endblock %}
+
+{% block page_title %}Fee Structure Settings{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 25px;">
+    <!-- Title Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
+        <div>
+            <h2 class="section-title" style="margin-bottom: 5px;">
+                <i class="fa-solid fa-list-check"></i> Fee Structures
+            </h2>
+            <p style="color: var(--text-secondary); font-size: 13px;">Configure department-wise semester billing installments and deadlines</p>
+        </div>
+        <a href="{% url 'fee_structure_add' %}" class="btn-primary" style="width: auto; padding: 10px 20px;">
+            <i class="fa-solid fa-plus"></i> Add Structure
+        </a>
+    </div>
+
+    <!-- Data Table -->
+    <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                    <th style="padding: 15px 20px;">Structure Title</th>
+                    <th style="padding: 15px 20px;">Course & Sem</th>
+                    <th style="padding: 15px 20px;">Fee Category</th>
+                    <th style="padding: 15px 20px;">Billing Amount</th>
+                    <th style="padding: 15px 20px;">Due Deadline Date</th>
+                    <th style="padding: 15px 20px; text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for struct in structures %}
+                <tr style="border-bottom: 1px solid var(--card-border); transition: var(--transition);" onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 15px 20px; font-weight: 600; color: var(--gold);">{{ struct.name }}</td>
+                    <td style="padding: 15px 20px;">{{ struct.course.code }} (Sem {{ struct.semester.number }})</td>
+                    <td style="padding: 15px 20px;">{{ struct.category.name }}</td>
+                    <td style="padding: 15px 20px; font-weight: 600;">${{ struct.amount }}</td>
+                    <td style="padding: 15px 20px; color: var(--text-secondary);">{{ struct.due_date|date:"M j, Y" }}</td>
+                    <td style="padding: 15px 20px; text-align: right; display: flex; justify-content: flex-end; gap: 8px;">
+                        <a href="{% url 'fee_structure_edit' struct.id %}" class="btn-secondary" style="padding: 6px 12px; font-size: 12px; border-color: rgba(255,255,255,0.05);" title="Edit"><i class="fa-solid fa-pen" style="margin:0;"></i></a>
+                        <a href="{% url 'fee_structure_delete' struct.id %}" class="btn-secondary" style="padding: 6px 12px; font-size: 12px; border-color: rgba(239,68,68,0.15); color: var(--danger);" title="Delete"><i class="fa-solid fa-trash-can" style="margin:0;"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 40px 20px; text-align: center; color: var(--text-secondary);">
+                        No Fee Structures registered yet. Click "Add Structure" to get started.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

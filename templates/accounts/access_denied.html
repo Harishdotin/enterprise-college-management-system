@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Access Denied | College Management System{% endblock %}
+
+{% block body_content %}
+<div class="auth-wrapper">
+    <div class="auth-card glass-panel" style="text-align: center; max-width: 480px;">
+        <div class="auth-header">
+            <div class="auth-logo" style="color: var(--danger); text-shadow: 0 0 15px rgba(239, 68, 68, 0.3);">
+                <i class="fa-solid fa-circle-minus"></i>
+            </div>
+            <h2 class="auth-title" style="color: var(--danger);">403 - Access Denied</h2>
+            <p class="auth-subtitle" style="margin-top: 10px;">
+                You do not have the required permissions or credentials to access this resource.
+            </p>
+        </div>
+        
+        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 30px; line-height: 1.5;">
+            Please contact the system administrator if you believe this is in error, or click below to return to your dashboard.
+        </p>
+
+        <a href="{% url 'dashboard_home' %}" class="btn-primary" style="text-decoration: none;">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Return to Dashboard</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

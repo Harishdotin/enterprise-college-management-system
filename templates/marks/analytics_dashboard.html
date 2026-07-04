@@ -1,0 +1,116 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Results Analytics | College Management System{% endblock %}
+
+{% block page_title %}Academic Performance Analytics{% endblock %}
+
+{% block dashboard_content %}
+<!-- Stats Grid -->
+<div class="stats-grid" style="margin-bottom: 30px;">
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Exams Resolved</h3>
+            <p>{{ total_exams }}</p>
+            <small style="color: var(--text-secondary);">With published results</small>
+        </div>
+        <div class="stat-icon">
+            <i class="fa-solid fa-file-invoice"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Pass Ratio</h3>
+            <p style="color: #6EE7B7;">{{ pass_pct }}%</p>
+            <small style="color: var(--text-secondary);">Successfully cleared</small>
+        </div>
+        <div class="stat-icon" style="color: #10B981; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2);">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Fail Ratio</h3>
+            <p style="color: #FCA5A5;">{{ fail_pct }}%</p>
+            <small style="color: var(--text-secondary);">Re-appear required (RA)</small>
+        </div>
+        <div class="stat-icon" style="color: var(--danger); background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2);">
+            <i class="fa-solid fa-circle-xmark"></i>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 40px;">
+    <!-- Left: Rank List & GP Distribution Charts -->
+    <div style="display: flex; flex-direction: column; gap: 30px;">
+        <!-- Top Performing Students -->
+        <div class="glass-panel" style="padding: 25px;">
+            <h2 class="section-title"><i class="fa-solid fa-ranking-star"></i> Top Rank Performers List</h2>
+            <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius); margin-top: 15px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                            <th style="padding: 12px 15px;">Rank</th>
+                            <th style="padding: 12px 15px;">Register Number</th>
+                            <th style="padding: 12px 15px;">Student Name</th>
+                            <th style="padding: 12px 15px; text-align: center;">Average Grade Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rank in top_performers %}
+                        <tr style="border-bottom: 1px solid var(--card-border);">
+                            <td style="padding: 12px 15px; font-weight: 700; color: var(--gold);">#{{ forloop.counter }}</td>
+                            <td style="padding: 12px 15px; font-weight: 600;">{{ rank.student__register_number }}</td>
+                            <td style="padding: 12px 15px;">{{ rank.student__full_name }}</td>
+                            <td style="padding: 12px 15px; text-align: center; font-weight: 700; color: var(--gold);">{{ rank.avg_gp|floatformat:2 }} / 10</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" style="padding: 30px; text-align: center; color: var(--text-secondary);">
+                                No rank lists available. Complete and publish exam results to generate.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Grade Distribution Chart Panel -->
+        <div class="glass-panel" style="padding: 25px;">
+            <h2 class="section-title"><i class="fa-solid fa-chart-bar"></i> Grade Distribution Summary</h2>
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 25px;">
+                {% for dist in grade_distribution %}
+                <div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom: 4px;">
+                        <span>Grade Letter: <strong>{{ dist.grade_letter }}</strong></span>
+                        <span>Total Roster Count: <strong>{{ dist.count }}</strong></span>
+                    </div>
+                    <div style="height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow:hidden;">
+                        <div style="width: {% widthratio dist.count 100 100 %}%; height: 100%; background: var(--gold);"></div>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="color: var(--text-secondary); text-align:center; padding: 20px;">No grade letters logged.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Pass/Fail SVG Visual Chart -->
+    <div class="glass-panel" style="padding: 25px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+        <h2 class="section-title" style="margin-bottom: 30px; width: 100%; text-align: left;"><i class="fa-solid fa-chart-pie"></i> Pass vs Fail Ratios</h2>
+        
+        <svg width="160" height="160" viewBox="0 0 36 36" style="transform: rotate(-90deg);">
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#FCA5A5" stroke-width="3" />
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10B981" stroke-width="3.2" stroke-dasharray="{{ pass_pct }}, 100" />
+        </svg>
+        
+        <div style="margin-top: 25px; display: flex; gap: 20px; justify-content: center; font-size: 13px;">
+            <span style="display: flex; align-items: center; gap: 5px;"><i class="fa-solid fa-circle" style="color: #10B981; font-size: 8px;"></i> Pass ({{ pass_pct }}%)</span>
+            <span style="display: flex; align-items: center; gap: 5px;"><i class="fa-solid fa-circle" style="color: #FCA5A5; font-size: 8px;"></i> Re-appear ({{ fail_pct }}%)</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

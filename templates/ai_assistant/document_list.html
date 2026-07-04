@@ -1,0 +1,98 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Document History | College Management System{% endblock %}
+
+{% block page_title %}AI Document Generation History{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 25px; margin-bottom: 30px; display: flex; flex-direction: column; gap: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h2 class="section-title" style="margin-bottom: 5px;"><i class="fa-solid fa-file-invoice"></i> Document Generator History</h2>
+            <p style="color: var(--text-secondary); font-size: 13px;">Manage, download, and review your AI generated letters, announcements, and reports.</p>
+        </div>
+        <a href="{% url 'ai_document_create' %}" class="btn-primary" style="width: auto; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-plus"></i> Generate Document
+        </a>
+    </div>
+
+    <!-- Search / Filter Form -->
+    <form method="GET" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; background: rgba(255,255,255,0.01); padding: 15px; border-radius: 8px; border: 1px solid var(--card-border);">
+        <div class="form-group" style="flex: 2; min-width: 200px; margin: 0;">
+            <label for="q" style="font-size: 11px; color: var(--gold); font-weight: 600; display: block; margin-bottom: 5px;">Search Keywords</label>
+            <input type="text" name="q" id="q" class="form-input" placeholder="e.g. Warning Letter, Jane Smith..." value="{{ q }}" style="padding-left:12px;">
+        </div>
+        <div class="form-group" style="flex: 1; min-width: 150px; margin: 0;">
+            <label for="doc_type" style="font-size: 11px; color: var(--gold); font-weight: 600; display: block; margin-bottom: 5px;">Document Type</label>
+            <select name="doc_type" id="doc_type" class="form-input" style="height: 42px;">
+                <option value="">All Types</option>
+                {% for dtype in document_types %}
+                <option value="{{ dtype }}" {% if dtype == doc_type %}selected{% endif %}>{{ dtype }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn-primary" style="width: auto; height: 42px; padding: 0 25px; margin: 0;">
+            <i class="fa-solid fa-search"></i> Filter
+        </button>
+        {% if q or doc_type %}
+        <a href="{% url 'ai_document_list' %}" class="btn-secondary" style="height: 42px; display: flex; align-items: center; justify-content: center; text-decoration: none; padding: 0 15px;">
+            Clear
+        </a>
+        {% endif %}
+    </form>
+
+    <!-- Document Table -->
+    <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                    <th style="padding: 12px 15px;">Document Title</th>
+                    <th style="padding: 12px 15px;">Created By</th>
+                    <th style="padding: 12px 15px;">Document Type</th>
+                    <th style="padding: 12px 15px;">Tone</th>
+                    <th style="padding: 12px 15px;">Created Date</th>
+                    <th style="padding: 12px 15px; text-align: center;">Regens</th>
+                    <th style="padding: 12px 15px; text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in documents %}
+                <tr style="border-bottom: 1px solid var(--card-border);">
+                    <td style="padding: 12px 15px; font-weight: 600; color: var(--gold);">{{ doc.title }}</td>
+                    <td style="padding: 12px 15px; color: #FFF;">{{ doc.user.username }} <small style="display:block; opacity:0.6;">{{ doc.user.role }}</small></td>
+                    <td style="padding: 12px 15px;">{{ doc.document_type }}</td>
+                    <td style="padding: 12px 15px;"><span style="background: rgba(212,175,55,0.1); border: 1px solid var(--gold); border-radius: 4px; padding: 2px 6px; font-size: 10px; color: var(--gold);">{{ doc.tone }}</span></td>
+                    <td style="padding: 12px 15px;">{{ doc.created_at|date:"M d, Y H:i" }}</td>
+                    <td style="padding: 12px 15px; text-align: center;">{{ doc.regeneration_count }}</td>
+                    <td style="padding: 12px 15px; text-align: right; display: flex; gap: 8px; justify-content: flex-end;">
+                        <a href="{% url 'ai_document_preview' doc.id %}" class="btn-secondary" style="padding: 5px 12px; font-size: 11px; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                            <i class="fa-solid fa-eye"></i> Preview / Export
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-secondary);">
+                        <i class="fa-solid fa-folder-open" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+                        No generated documents found. Click "Generate Document" to create one.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&doc_type={{ doc_type }}" class="btn-secondary" style="padding: 5px 15px; text-decoration: none;">&laquo; Previous</a>
+        {% endif %}
+        <span style="align-self: center; font-size: 12px; color: var(--text-secondary);">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&doc_type={{ doc_type }}" class="btn-secondary" style="padding: 5px 15px; text-decoration: none;">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

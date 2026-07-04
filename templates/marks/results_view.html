@@ -1,0 +1,133 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}My Academic Results | College Management System{% endblock %}
+
+{% block page_title %}Academic Marksheets & Results{% endblock %}
+
+{% block dashboard_content %}
+<!-- Search Student Marks for Admin / Staff -->
+{% if user.role == 'SUPER_ADMIN' or user.role == 'STAFF' %}
+<div class="glass-panel" style="padding: 20px; margin-bottom: 30px;">
+    <form method="GET" style="display: flex; gap: 15px; align-items: end; max-width: 500px;">
+        <div class="form-group" style="flex: 1; margin:0;">
+            <label for="register_number" class="form-label">Look Up Student Register Number</label>
+            <input type="text" name="register_number" id="register_number" class="form-input" placeholder="e.g. REG2026001" value="{{ student_profile.register_number }}" style="padding-left:10px;" required>
+        </div>
+        <button type="submit" class="btn-primary" style="width: auto; padding: 10px 20px;">
+            <i class="fa-solid fa-search"></i> Search Results
+        </button>
+    </form>
+</div>
+{% endif %}
+
+<!-- Header Stats Panel (CGPA / Credits) -->
+<div class="stats-grid" style="margin-bottom: 30px;">
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Cumulative GPA (CGPA)</h3>
+            <p style="color: var(--gold);">{{ overall_cgpa }}</p>
+            <small style="color: var(--text-secondary);">Calculated across all credits</small>
+        </div>
+        <div class="stat-icon" style="color: var(--gold); background: rgba(212,175,55,0.08); border-color: rgba(212,175,55,0.18);">
+            <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Credits Earned</h3>
+            <p>{{ total_credits_earned }}</p>
+            <small style="color: var(--text-secondary);">Of degree requirements</small>
+        </div>
+        <div class="stat-icon">
+            <i class="fa-solid fa-medal"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Credits Remaining</h3>
+            <p>{{ total_credits_remaining }}</p>
+            <small style="color: var(--text-secondary);">Assume 160 units degree</small>
+        </div>
+        <div class="stat-icon">
+            <i class="fa-solid fa-hourglass-half"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Semester-wise Marksheets -->
+<div style="display: flex; flex-direction: column; gap: 40px; margin-bottom: 50px;">
+    {% for semester, data in semesters_data.items %}
+    <div class="glass-panel" style="padding: 25px;">
+        <!-- Semester Title Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--card-border); padding-bottom: 15px; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700; color: var(--gold);">Semester {{ semester.number }} Marksheet</h3>
+                <span style="font-size: 11px; color: var(--text-secondary);">Course: {{ semester.course.name }}</span>
+            </div>
+            <div style="display: flex; gap: 20px; font-size: 13px;">
+                <div>
+                    <span style="color: var(--text-secondary);">Credits:</span>
+                    <strong>{{ data.credits_sum }}</strong>
+                </div>
+                <div>
+                    <span style="color: var(--text-secondary);">Semester GPA:</span>
+                    <strong style="color: var(--gold);">{{ data.gpa }}</strong>
+                </div>
+                <button type="button" onclick="window.print()" class="btn-secondary" style="padding: 4px 10px; font-size: 11px; width:auto; border-color: rgba(255,255,255,0.05);">
+                    <i class="fa-solid fa-print"></i> Print Gradesheet
+                </button>
+            </div>
+        </div>
+
+        <!-- Grade Sheet Table -->
+        <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius);">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                        <th style="padding: 12px 15px;">Subject Code</th>
+                        <th style="padding: 12px 15px;">Subject Name</th>
+                        <th style="padding: 12px 15px;">Credits</th>
+                        <th style="padding: 12px 15px;">Exam Term</th>
+                        <th style="padding: 12px 15px; text-align: center;">Score Obtained</th>
+                        <th style="padding: 12px 15px; text-align: center;">Grade Point</th>
+                        <th style="padding: 12px 15px; text-align: center;">Grade Letter</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in data.marks %}
+                    <tr style="border-bottom: 1px solid var(--card-border); transition: var(--transition);" onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 12px 15px; font-weight: 600; color: var(--gold);">{{ m.exam.subject.code }}</td>
+                        <td style="padding: 12px 15px; font-weight: 500;">{{ m.exam.subject.name }}</td>
+                        <td style="padding: 12px 15px; font-weight: 600;">{{ m.exam.subject.credits }}</td>
+                        <td style="padding: 12px 15px; color: var(--text-secondary);">{{ m.exam.get_exam_type_display }}</td>
+                        <td style="padding: 12px 15px; text-align: center; font-weight: 600;">
+                            {{ m.marks_obtained }} / <small style="color: var(--text-secondary);">{{ m.exam.maximum_marks }}</small>
+                        </td>
+                        <td style="padding: 12px 15px; text-align: center; font-weight: 600; color: var(--gold);">{{ m.grade_point }}</td>
+                        <td style="padding: 12px 15px; text-align: center;">
+                            <span style="font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 12px;
+                                {% if m.grade_letter == 'RA' %}
+                                    background: rgba(239, 68, 68, 0.1); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.2);
+                                {% else %}
+                                    background: rgba(212,175,55,0.1); color: var(--gold); border: 1px solid rgba(212,175,55,0.2);
+                                {% endif %}">
+                                {{ m.grade_letter }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% empty %}
+    <div class="glass-panel" style="padding: 50px; text-align: center; color: var(--text-secondary);">
+        <i class="fa-solid fa-graduation-cap" style="font-size: 40px; color: var(--card-border); margin-bottom: 15px; display: block;"></i>
+        <h3>No Published Results Found</h3>
+        <p style="font-size: 12px; margin-top: 5px;">There are no results published on your portal yet.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

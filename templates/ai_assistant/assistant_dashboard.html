@@ -1,0 +1,228 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}AI Assistant | College Management System{% endblock %}
+
+{% block page_title %}AI Assistant Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 25px; margin-bottom: 30px; display: flex; flex-direction: column; gap: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h2 class="section-title" style="margin-bottom: 5px;"><i class="fa-solid fa-robot"></i> AI Assistant Portal</h2>
+            <p style="color: var(--text-secondary); font-size: 13px;">Your personal intelligent campus assistant for queries regarding grades, timetables, and leave generation.</p>
+        </div>
+        <button type="button" onclick="clearChatHistory()" class="btn-secondary" style="width: auto; padding: 8px 16px; border-color: rgba(239,68,68,0.2); color: var(--danger);">
+            <i class="fa-solid fa-trash-can"></i> Clear History
+        </button>
+    </div>
+
+    <!-- Chat Portal Container -->
+    <div style="display: grid; grid-template-columns: 2.5fr 1fr; gap: 25px; min-height: 520px; align-items: start;">
+        
+        <!-- Chat Window Card -->
+        <div class="glass-card" style="display: flex; flex-direction: column; height: 500px; border-color: rgba(212,175,55,0.25); border-radius: var(--border-radius); overflow: hidden; padding: 0;">
+            <!-- Chat Card Header -->
+            <div style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--card-border); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-circle" style="color: #10B981; font-size: 9px;"></i>
+                    <span style="font-weight: 700; color: var(--gold); font-size: 14px;">Apex Intellect Foundation v9.2</span>
+                </div>
+                <small style="color: var(--text-secondary); font-size: 11px;">Active Engine</small>
+            </div>
+
+            <!-- Messages Timeline Area -->
+            <div id="dashboard-chat-messages" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; font-size: 13px;">
+                <!-- Welcoming system message -->
+                <div style="align-self: flex-start; background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); padding: 12px 16px; border-radius: 12px 12px 12px 0; color: #FFF; max-width: 80%; line-height: 1.5;">
+                    Welcome! The AI Foundation architecture is operational. You can start typing below to interact with the scalable provider factories.
+                </div>
+            </div>
+
+            <!-- Typing indicator -->
+            <div id="dashboard-chat-typing" style="display: none; padding: 10px 20px; font-size: 12px; color: var(--text-secondary); align-items: center; gap: 8px;">
+                <i class="fa-solid fa-ellipsis fa-fade"></i> AI is typing...
+            </div>
+
+            <!-- Form input controls -->
+            <form id="dashboard-chat-form" style="display: flex; border-top: 1px solid var(--card-border); background: #111827; margin:0;" onsubmit="handleDashboardChatSubmit(event)">
+                {% csrf_token %}
+                <textarea id="dashboard-chat-input" placeholder="Type a query or prompt... (Press Enter to send, Shift+Enter for new line)" style="flex: 1; background: none; border: none; padding: 18px 20px; color: #FFF; font-size: 13px; outline: none; resize: none; height: 55px;" rows="1"></textarea>
+                <button type="submit" id="dashboard-chat-send-btn" class="btn-primary" style="width: auto; border-radius: 0; padding: 0 30px; margin: 0; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-paper-plane" id="send-btn-icon"></i>
+                    <i class="fa-solid fa-spinner fa-spin" id="send-btn-spinner" style="display: none;"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Suggestions & Hints Sidebar -->
+        <div class="glass-card" style="padding: 20px; height: 500px; display: flex; flex-direction: column; justify-content: space-between; border-color: rgba(255,255,255,0.05);">
+            <div>
+                <h3 style="font-size: 14px; font-weight: 700; color: var(--gold); margin-bottom: 15px;"><i class="fa-solid fa-lightbulb"></i> Suggested Prompts</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    {% for prompt in suggested_prompts %}
+                    <button type="button" onclick="useSuggestedPrompt('{{ prompt }}')" style="text-align: left; background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); color: #FFF; border-radius: 8px; padding: 10px 12px; font-size: 11px; cursor: pointer; transition: var(--transition);" onmouseover="this.style.borderColor='var(--gold)'; this.style.background='rgba(212,175,55,0.05)';" onmouseout="this.style.borderColor='var(--card-border)'; this.style.background='rgba(255,255,255,0.02)';">
+                        {{ prompt }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div style="border-top: 1px solid var(--card-border); padding-top: 15px; font-size: 11px; color: var(--text-secondary); line-height: 1.5;">
+                <strong style="color:var(--gold); display:block; margin-bottom:4px;">Scale-ready Modules</strong>
+                Provider configurations can be switched from the AI Config settings page.
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+const messagesArea = document.getElementById('dashboard-chat-messages');
+const inputField = document.getElementById('dashboard-chat-input');
+const typingIndicator = document.getElementById('dashboard-chat-typing');
+const sendButton = document.getElementById('dashboard-chat-send-btn');
+const sendIcon = document.getElementById('send-btn-icon');
+const sendSpinner = document.getElementById('send-btn-spinner');
+
+// Auto focus input on load
+window.addEventListener('DOMContentLoaded', () => {
+    inputField.focus();
+    loadChatHistory();
+});
+
+// Bind Enter and Shift+Enter keypress
+inputField.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('dashboard-chat-form').dispatchEvent(new Event('submit', { cancelable: true }));
+    }
+});
+
+function loadChatHistory() {
+    fetch('/ai/chat/history/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' && data.history.length > 0) {
+                // Clear and repopulate history
+                messagesArea.innerHTML = '';
+                data.history.forEach(m => {
+                    appendBubble(m.role, m.message, m.timestamp);
+                });
+                messagesArea.scrollTop = messagesArea.scrollHeight;
+            }
+        });
+}
+
+function clearChatHistory() {
+    if (confirm("Are you sure you want to clear your conversation history?")) {
+        fetch('/ai/chat/clear/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                messagesArea.innerHTML = '<div style="align-self: flex-start; background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); padding: 12px 16px; border-radius: 12px 12px 12px 0; color: #FFF; max-width: 80%; line-height: 1.5;">Chat history cleared. You can start a new conversation below.</div>';
+            }
+        });
+    }
+}
+
+function useSuggestedPrompt(text) {
+    inputField.value = text;
+    inputField.focus();
+}
+
+function handleDashboardChatSubmit(event) {
+    event.preventDefault();
+    const text = inputField.value.trim();
+    if (!text) return;
+
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Append User Message Bubble
+    appendBubble('user', text, timestamp);
+    inputField.value = '';
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+
+    // Show typing loader and disable inputs
+    typingIndicator.style.display = 'flex';
+    setLoadingState(true);
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+
+    // Prepare AJAX call
+    const formData = new FormData();
+    formData.append('message', text);
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+    fetch('/ai/chat/send/', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        typingIndicator.style.display = 'none';
+        setLoadingState(false);
+        if (data.status === 'success') {
+            appendBubble('assistant', data.message, data.timestamp);
+        } else {
+            appendBubble('assistant', 'Error: ' + (data.message || 'Verification execution failed.'), timestamp);
+        }
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+        inputField.focus();
+    })
+    .catch(err => {
+        typingIndicator.style.display = 'none';
+        setLoadingState(false);
+        appendBubble('assistant', 'Network failure: verify local server connection.', timestamp);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+        inputField.focus();
+    });
+}
+
+function setLoadingState(isLoading) {
+    if (isLoading) {
+        sendButton.disabled = true;
+        inputField.disabled = true;
+        sendIcon.style.display = 'none';
+        sendSpinner.style.display = 'inline-block';
+    } else {
+        sendButton.disabled = false;
+        inputField.disabled = false;
+        sendIcon.style.display = 'inline-block';
+        sendSpinner.style.display = 'none';
+    }
+}
+
+function appendBubble(role, text, timeStr) {
+    const bubble = document.createElement('div');
+    const metaStr = timeStr ? `<small style="display:block; font-size:10px; margin-top:5px; opacity:0.6; text-align:${role === 'user' ? 'right' : 'left'};">${timeStr}</small>` : '';
+    
+    if (role === 'user') {
+        bubble.style.alignSelf = 'flex-end';
+        bubble.style.background = 'var(--gold)';
+        bubble.style.color = '#000';
+        bubble.style.padding = '12px 16px';
+        bubble.style.borderRadius = '12px 12px 0 12px';
+        bubble.style.maxWidth = '80%';
+        bubble.style.fontWeight = '600';
+    } else {
+        bubble.style.alignSelf = 'flex-start';
+        bubble.style.background = 'rgba(255,255,255,0.03)';
+        bubble.style.border = '1px solid var(--card-border)';
+        bubble.style.color = '#FFF';
+        bubble.style.padding = '12px 16px';
+        bubble.style.borderRadius = '12px 12px 12px 0';
+        bubble.style.maxWidth = '80%';
+    }
+    bubble.style.lineHeight = '1.5';
+    
+    // Parse basic markdown markers like **bold**
+    let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    bubble.innerHTML = `<div>${formattedText}</div>${metaStr}`;
+    messagesArea.appendChild(bubble);
+}
+</script>
+{% endblock %}

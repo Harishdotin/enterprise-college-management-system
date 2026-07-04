@@ -1,0 +1,66 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}AI Configuration | College Management System{% endblock %}
+
+{% block page_title %}AI Assistant Configurations{% endblock %}
+
+{% block dashboard_content %}
+<div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px; align-items: start; margin-bottom: 40px;">
+    <!-- Settings Form -->
+    <div class="glass-panel" style="padding: 25px;">
+        <h2 class="section-title" style="margin-bottom: 20px;"><i class="fa-solid fa-gears"></i> Engine Settings</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                {% for field in form %}
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:500;">{{ field.label }}</label>
+                    {{ field }}
+                </div>
+                {% endfor %}
+            </div>
+            <div style="margin-top: 25px; border-top: 1px solid var(--card-border); padding-top: 20px;">
+                <button type="submit" class="btn-primary" style="width: 100%; padding: 10px;">Save Configuration</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Audit Logs -->
+    <div class="glass-panel" style="padding: 25px;">
+        <h2 class="section-title" style="margin-bottom: 20px;"><i class="fa-solid fa-list-check"></i> AI Transaction Audit Logs</h2>
+        
+        <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius);">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                        <th style="padding: 10px 12px;">User</th>
+                        <th style="padding: 10px 12px;">Query</th>
+                        <th style="padding: 10px 12px;">Intent</th>
+                        <th style="padding: 10px 12px;">Speed</th>
+                        <th style="padding: 10px 12px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in audit_logs %}
+                    <tr style="border-bottom: 1px solid var(--card-border);">
+                        <td style="padding: 10px 12px; font-weight: 600;">{{ log.user.username }}</td>
+                        <td style="padding: 10px 12px; max-width:180px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">{{ log.query }}</td>
+                        <td style="padding: 10px 12px; font-family: monospace;">{{ log.intent }}</td>
+                        <td style="padding: 10px 12px; color: var(--text-secondary);">{{ log.execution_time_ms }} ms</td>
+                        <td style="padding: 10px 12px;">
+                            <span style="font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 8px; background: rgba(16, 185, 129, 0.1); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.2);">
+                                {{ log.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="padding: 30px; text-align: center; color: var(--text-secondary);">No transactions audited yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Subjects | College Management System{% endblock %}
+
+{% block page_title %}Subjects Syllabus{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h2 class="section-title" style="margin-bottom: 5px;">
+                <i class="fa-solid fa-book"></i> Course Subjects
+            </h2>
+            <p style="color: var(--text-secondary); font-size: 13px;">Manage subjects, academic credits, types, and assigned faculty</p>
+        </div>
+        <a href="{% url 'subject_add' %}" class="btn-primary" style="width: auto; padding: 10px 20px;">
+            <i class="fa-solid fa-plus"></i> Add Subject
+        </a>
+    </div>
+
+    <!-- Filter form -->
+    <form method="GET" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <div class="input-container" style="flex: 1; min-width: 200px;">
+            <input type="text" name="search" class="form-input" placeholder="Search by subject code or name..." value="{{ request.GET.search }}" style="padding-left: 35px;">
+            <i class="fa-solid fa-magnifying-glass" style="left: 12px;"></i>
+        </div>
+        <select name="department" class="form-input" style="width: 200px; padding-left: 10px;">
+            <option value="">All Departments</option>
+            {% for dept in departments %}
+            <option value="{{ dept.id }}" {% if request.GET.department == dept.id|slugify %}selected{% endif %}>{{ dept.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn-primary" style="width: auto; padding: 10px 20px;">Filter</button>
+        <a href="{% url 'subject_list' %}" class="btn-secondary" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0;"><i class="fa-solid fa-arrows-rotate" style="margin:0;"></i></a>
+    </form>
+
+    <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                    <th style="padding: 15px 20px;">Code</th>
+                    <th style="padding: 15px 20px;">Subject Name</th>
+                    <th style="padding: 15px 20px;">Department</th>
+                    <th style="padding: 15px 20px;">Credits</th>
+                    <th style="padding: 15px 20px;">Type</th>
+                    <th style="padding: 15px 20px;">Assigned Faculty</th>
+                    <th style="padding: 15px 20px;">Status</th>
+                    <th style="padding: 15px 20px; text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in subjects %}
+                <tr style="border-bottom: 1px solid var(--card-border); transition: var(--transition);" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 15px 20px; font-weight: 600; color: var(--gold);">{{ sub.code }}</td>
+                    <td style="padding: 15px 20px; font-weight: 500;">{{ sub.name }}</td>
+                    <td style="padding: 15px 20px;">{{ sub.department.code }}</td>
+                    <td style="padding: 15px 20px; font-weight: 600;">{{ sub.credits }}</td>
+                    <td style="padding: 15px 20px;">{{ sub.get_subject_type_display }}</td>
+                    <td style="padding: 15px 20px;">{{ sub.faculty.full_name|default:"Unassigned" }}</td>
+                    <td style="padding: 15px 20px;">
+                        <span style="font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 20px;
+                            {% if sub.status == 'ACTIVE' %}
+                                background: rgba(16, 185, 129, 0.1); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.2);
+                            {% else %}
+                                background: rgba(239, 68, 68, 0.1); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.2);
+                            {% endif %}">
+                            {{ sub.get_status_display }}
+                        </span>
+                    </td>
+                    <td style="padding: 15px 20px; text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
+                        <a href="{% url 'subject_edit' sub.id %}" class="btn-secondary" style="padding: 6px 12px; font-size: 12px; color: var(--gold); border-color: rgba(212,175,55,0.2);" title="Edit">
+                            <i class="fa-solid fa-pen" style="margin:0;"></i>
+                        </a>
+                        <a href="{% url 'subject_delete' sub.id %}" class="btn-secondary" style="padding: 6px 12px; font-size: 12px; color: var(--danger); border-color: rgba(239,68,68,0.2);" title="Delete">
+                            <i class="fa-solid fa-trash-can" style="margin:0;"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="padding: 40px 20px; text-align: center; color: var(--text-secondary);">
+                        No Subjects registered. Click "Add Subject" to start.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

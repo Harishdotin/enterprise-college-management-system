@@ -1,0 +1,304 @@
+<aside id="sidebar" class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-logo"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="brand-name">CMS Portal</div>
+    </div>
+    
+    <ul class="sidebar-menu">
+        <!-- Dashboard Home (All Roles) -->
+        <li class="sidebar-menu-item {% if request.resolver_match.url_name == 'dashboard_home' %}active{% endif %}">
+            <a href="{% url 'dashboard_home' %}" class="sidebar-link">
+                <i class="fa-solid fa-gauge-high"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+
+        <!-- ROLE: SUPER ADMIN -->
+        {% if user.role == 'SUPER_ADMIN' or user.is_superuser %}
+            <li class="sidebar-menu-item {% if '/academics/years/' in request.path %}active{% endif %}">
+                <a href="{% url 'year_list' %}" class="sidebar-link">
+                    <i class="fa-regular fa-calendar-days"></i>
+                    <span>Academic Years</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/academics/departments/' in request.path %}active{% endif %}">
+                <a href="{% url 'department_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-sitemap"></i>
+                    <span>Departments</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/academics/courses/' in request.path %}active{% endif %}">
+                <a href="{% url 'course_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-book-bookmark"></i>
+                    <span>Courses</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/academics/semesters/' in request.path %}active{% endif %}">
+                <a href="{% url 'semester_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-list-ol"></i>
+                    <span>Semesters</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/academics/sections/' in request.path %}active{% endif %}">
+                <a href="{% url 'section_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-shapes"></i>
+                    <span>Sections</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/academics/subjects/' in request.path %}active{% endif %}">
+                <a href="{% url 'subject_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-book"></i>
+                    <span>Subjects</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/academics/classes/' in request.path %}active{% endif %}">
+                <a href="{% url 'class_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    <span>Classes</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/academics/assignments/' in request.path %}active{% endif %}">
+                <a href="{% url 'faculty_assignment_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-user-check"></i>
+                    <span>Faculty Assign</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/students/' in request.path and request.resolver_match.url_name != 'student_self_profile' %}active{% endif %}">
+                <a href="{% url 'student_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <span>Students</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/staff/' in request.path and request.resolver_match.url_name != 'staff_self_profile' %}active{% endif %}">
+                <a href="{% url 'staff_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-user-tie"></i>
+                    <span>Staff Directory</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/attendance/' in request.path %}active{% endif %}">
+                <a href="{% url 'attendance_dashboard' %}" class="sidebar-link">
+                    <i class="fa-solid fa-clipboard-user"></i>
+                    <span>Attendance Logs</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/timetable/' in request.path %}active{% endif %}">
+                <a href="{% url 'timetable_grid' %}" class="sidebar-link">
+                    <i class="fa-regular fa-clock"></i>
+                    <span>Timetable Grid</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/marks/exams/' in request.path %}active{% endif %}">
+                <a href="{% url 'exam_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-file-invoice"></i>
+                    <span>Exams Scheduling</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/marks/analytics/' in request.path %}active{% endif %}">
+                <a href="{% url 'academic_performance' %}" class="sidebar-link">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Results Analytics</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/fees/' in request.path and '/fees/reports/' not in request.path %}active{% endif %}">
+                <a href="{% url 'financial_dashboard' %}" class="sidebar-link">
+                    <i class="fa-solid fa-credit-card"></i>
+                    <span>Fees System</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/fees/reports/' in request.path %}active{% endif %}">
+                <a href="{% url 'financial_reports' %}" class="sidebar-link">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Financial Reports</span>
+                </a>
+            </li>
+        {% endif %}
+
+        <!-- ROLE: STAFF -->
+        {% if user.role == 'STAFF' %}
+            <li class="sidebar-menu-item {% if request.resolver_match.url_name == 'staff_self_profile' %}active{% endif %}">
+                <a href="{% url 'staff_self_profile' %}" class="sidebar-link">
+                    <i class="fa-solid fa-user"></i>
+                    <span>My Profile</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/students/' in request.path and request.resolver_match.url_name != 'student_self_profile' %}active{% endif %}">
+                <a href="{% url 'student_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <span>Student Roster</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/attendance/mark/' in request.path %}active{% endif %}">
+                <a href="{% url 'mark_attendance' %}" class="sidebar-link">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span>Mark Attendance</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/attendance/leaves/' in request.path %}active{% endif %}">
+                <a href="{% url 'leave_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-house-laptop"></i>
+                    <span>My Leaves</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/marks/exams/' in request.path %}active{% endif %}">
+                <a href="{% url 'exam_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-file-signature"></i>
+                    <span>Enter Marks</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/marks/analytics/' in request.path %}active{% endif %}">
+                <a href="{% url 'academic_performance' %}" class="sidebar-link">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Results Analytics</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/assignments/materials/' in request.path %}active{% endif %}">
+                <a href="{% url 'study_material_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>Study Materials</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/assignments/' in request.path and '/assignments/materials/' not in request.path %}active{% endif %}">
+                <a href="{% url 'assignment_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-scroll"></i>
+                    <span>Assignments</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/timetable/' in request.path %}active{% endif %}">
+                <a href="{% url 'timetable_grid' %}" class="sidebar-link">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>Timetable</span>
+                </a>
+            </li>
+        {% endif %}
+
+        <!-- ROLE: STUDENT -->
+        {% if user.role == 'STUDENT' %}
+            <li class="sidebar-menu-item {% if request.resolver_match.url_name == 'student_self_profile' %}active{% endif %}">
+                <a href="{% url 'student_self_profile' %}" class="sidebar-link">
+                    <i class="fa-solid fa-user"></i>
+                    <span>My Profile</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/attendance/leaves/' in request.path %}active{% endif %}">
+                <a href="{% url 'leave_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-house-laptop"></i>
+                    <span>My Leaves</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/marks/results/' in request.path %}active{% endif %}">
+                <a href="{% url 'student_results' %}" class="sidebar-link">
+                    <i class="fa-solid fa-square-poll-vertical"></i>
+                    <span>Report Cards</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/marks/hallticket/' in request.path %}active{% endif %}">
+                <a href="{% url 'student_hall_ticket' %}" class="sidebar-link">
+                    <i class="fa-solid fa-id-card"></i>
+                    <span>Hall Ticket</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/assignments/' in request.path %}active{% endif %}">
+                <a href="{% url 'assignment_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-scroll"></i>
+                    <span>Assignments</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/assignments/materials/' in request.path %}active{% endif %}">
+                <a href="{% url 'study_material_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>Study Materials</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/timetable/' in request.path %}active{% endif %}">
+                <a href="{% url 'timetable_grid' %}" class="sidebar-link">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>Schedule</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item {% if '/fees/' in request.path %}active{% endif %}">
+                <a href="{% url 'student_fees_list' %}" class="sidebar-link">
+                    <i class="fa-solid fa-credit-card"></i>
+                    <span>Fees & Invoices</span>
+                </a>
+            </li>
+        {% endif %}
+
+        <!-- Common items for logged in users -->
+        <li class="sidebar-menu-item {% if request.resolver_match.url_name == 'notification_list' %}active{% endif %}">
+            <a href="{% url 'notification_list' %}" class="sidebar-link">
+                <i class="fa-solid fa-bell"></i>
+                <span>Notifications</span>
+            </a>
+        </li>
+        <li class="sidebar-menu-item {% if '/notifications/announcements/' in request.path %}active{% endif %}">
+            <a href="{% url 'announcements_board' %}" class="sidebar-link">
+                <i class="fa-solid fa-bullhorn"></i>
+                <span>Notice Board</span>
+            </a>
+        </li>
+        <li class="sidebar-menu-item {% if '/notifications/messages/' in request.path %}active{% endif %}">
+            <a href="{% url 'inbox' %}" class="sidebar-link">
+                <i class="fa-solid fa-envelope"></i>
+                <span>Communication</span>
+            </a>
+        </li>
+        <li class="sidebar-menu-item {% if '/students/feedback/' in request.path %}active{% endif %}">
+            <a href="{% if user.role == 'SUPER_ADMIN' %}{% url 'student_feedback_analytics' %}{% else %}{% url 'student_feedback_create' %}{% endif %}" class="sidebar-link">
+                <i class="fa-solid fa-comment-dots"></i>
+                <span>Feedback</span>
+            </a>
+        </li>
+        <li class="sidebar-menu-item {% if request.resolver_match.url_name == 'ai_assistant_dashboard' %}active{% endif %}">
+            <a href="{% url 'ai_assistant_dashboard' %}" class="sidebar-link">
+                <i class="fa-solid fa-robot"></i>
+                <span>AI Assistant</span>
+            </a>
+        </li>
+        <li class="sidebar-menu-item {% if '/ai/documents/' in request.path %}active{% endif %}">
+            <a href="{% url 'ai_document_list' %}" class="sidebar-link">
+                <i class="fa-solid fa-file-invoice"></i>
+                <span>Document Gen</span>
+            </a>
+        </li>
+        <li class="sidebar-menu-item {% if '/ai/predictions/' in request.path %}active{% endif %}">
+            <a href="{% url 'ai_predictions' %}" class="sidebar-link">
+                <i class="fa-solid fa-brain"></i>
+                <span>AI Predictions</span>
+            </a>
+        </li>
+        <li class="sidebar-menu-item {% if '/ai/search/' in request.path %}active{% endif %}">
+            <a href="{% url 'ai_search' %}" class="sidebar-link">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Smart Search</span>
+            </a>
+        </li>
+        <li class="sidebar-menu-item {% if '/ai/analytics/' in request.path %}active{% endif %}">
+            <a href="{% url 'ai_analytics' %}" class="sidebar-link">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Smart Analytics</span>
+            </a>
+        </li>
+        {% if user.role == 'SUPER_ADMIN' %}
+        <li class="sidebar-menu-item {% if '/ai/config/' in request.path %}active{% endif %}">
+            <a href="{% url 'ai_config' %}" class="sidebar-link">
+                <i class="fa-solid fa-gears"></i>
+                <span>AI Config</span>
+            </a>
+        </li>
+        {% endif %}
+        
+        <li class="sidebar-menu-item">
+            <a href="{% url 'password_change' %}" class="sidebar-link">
+                <i class="fa-solid fa-key"></i>
+                <span>Security</span>
+            </a>
+        </li>
+    </ul>
+
+    <div class="sidebar-footer">
+        <a href="{% url 'logout' %}" class="sidebar-link" style="color: var(--danger); background: rgba(239, 68, 68, 0.05);">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Log Out</span>
+        </a>
+    </div>
+</aside>

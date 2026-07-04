@@ -1,0 +1,240 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Fees & Invoices | College Management System{% endblock %}
+
+{% block page_title %}Student Fee Portal{% endblock %}
+
+{% block dashboard_content %}
+<!-- Search Student Billing for Admin / Staff -->
+{% if user.role == 'SUPER_ADMIN' or user.role == 'STAFF' %}
+<div class="glass-panel" style="padding: 20px; margin-bottom: 30px;">
+    <form method="GET" style="display: flex; gap: 15px; align-items: end; max-width: 500px;">
+        <div class="form-group" style="flex: 1; margin:0;">
+            <label for="register_number" class="form-label">Look Up Student Register Number</label>
+            <input type="text" name="register_number" id="register_number" class="form-input" placeholder="e.g. REG2026001" value="{{ student.register_number }}" style="padding-left:10px;" required>
+        </div>
+        <button type="submit" class="btn-primary" style="width: auto; padding: 10px 20px;">
+            <i class="fa-solid fa-search"></i> Load Invoices
+        </button>
+    </form>
+</div>
+{% endif %}
+
+<!-- Active Invoices Section -->
+<div class="glass-panel" style="padding: 25px; margin-bottom: 40px;">
+    <h2 class="section-title" style="margin-bottom: 20px;">
+        <i class="fa-solid fa-file-invoice-dollar"></i> Outstanding Invoices & Bills
+    </h2>
+
+    <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                    <th style="padding: 15px 20px;">Fee details</th>
+                    <th style="padding: 15px 20px;">Due Date</th>
+                    <th style="padding: 15px 20px;">Base Amount</th>
+                    <th style="padding: 15px 20px; color: var(--danger);">Fines</th>
+                    <th style="padding: 15px 20px; color: #10B981;">Discounts</th>
+                    <th style="padding: 15px 20px;">Total Due</th>
+                    <th style="padding: 15px 20px;">Amount Paid</th>
+                    <th style="padding: 15px 20px;">Remaining Balance</th>
+                    <th style="padding: 15px 20px;">Status</th>
+                    <th style="padding: 15px 20px; text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fee in fees_list %}
+                <tr style="border-bottom: 1px solid var(--card-border);">
+                    <td style="padding: 15px 20px;">
+                        <div style="font-weight: 600; color: var(--gold);">{{ fee.fee_structure.name }}</div>
+                        <small style="color: var(--text-secondary);">Category: {{ fee.fee_structure.category.name }}</small>
+                    </td>
+                    <td style="padding: 15px 20px; color: var(--text-secondary);">{{ fee.fee_structure.due_date|date:"M j, Y" }}</td>
+                    <td style="padding: 15px 20px;">${{ fee.fee_structure.amount }}</td>
+                    <td style="padding: 15px 20px; color: var(--danger); font-weight:600;">${{ fee.fine_amount }}</td>
+                    <td style="padding: 15px 20px; color: #6EE7B7; font-weight:600;">${{ fee.discount_amount }}</td>
+                    <td style="padding: 15px 20px; font-weight: 600; color: var(--gold);">${{ fee.total_due }}</td>
+                    <td style="padding: 15px 20px;">${{ fee.amount_paid }}</td>
+                    <td style="padding: 15px 20px; font-weight: 600; color: {% if fee.remaining_balance > 0 %}#FCA5A5{% else %}#6EE7B7{% endif %};">
+                        ${{ fee.remaining_balance }}
+                    </td>
+                    <td style="padding: 15px 20px;">
+                        <span style="font-size: 10px; font-weight: 600; padding: 4px 8px; border-radius: 20px;
+                            {% if fee.status == 'PAID' %}
+                                background: rgba(16, 185, 129, 0.1); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.2);
+                            {% elif fee.status == 'PARTIAL' %}
+                                background: rgba(245, 158, 11, 0.1); color: #FDE047; border: 1px solid rgba(245, 158, 11, 0.2);
+                            {% else %}
+                                background: rgba(239, 68, 68, 0.1); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.2);
+                            {% endif %}">
+                            {{ fee.get_status_display }}
+                        </span>
+                    </td>
+                    <td style="padding: 15px 20px; text-align: right; display: flex; justify-content: flex-end; gap: 8px; align-items: center; min-height: 60px;">
+                        {% if fee.status != 'PAID' %}
+                        <!-- Pay Fee Inline trigger (Modal simulations) -->
+                        <button type="button" onclick="openPayModal('{{ fee.id }}', '{{ fee.fee_structure.name }}', '{{ fee.remaining_balance }}')" class="btn-primary" style="padding: 6px 12px; font-size: 11px; width: auto;">
+                            <i class="fa-solid fa-credit-card"></i> Pay Balance
+                        </button>
+                        {% endif %}
+
+                        <!-- Fine Adjustment (Admin only) -->
+                        {% if user.role == 'SUPER_ADMIN' %}
+                        <button type="button" onclick="openFineModal('{{ fee.id }}', '{{ fee.fee_structure.name }}')" class="btn-secondary" style="padding: 6px 12px; font-size: 11px; width: auto; border-color: rgba(239,68,68,0.2); color: var(--danger);">
+                            <i class="fa-solid fa-gavel"></i> Fine/Waive
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                        No billing invoices recorded for this academic period.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Payments History Section -->
+<div class="glass-panel" style="padding: 25px;">
+    <h2 class="section-title" style="margin-bottom: 20px;">
+        <i class="fa-solid fa-receipt"></i> Payment History & Receipts Ledger
+    </h2>
+
+    <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                    <th style="padding: 12px 15px;">Receipt Number</th>
+                    <th style="padding: 12px 15px;">Fee Invoice</th>
+                    <th style="padding: 12px 15px;">Transaction Date</th>
+                    <th style="padding: 12px 15px;">Payment Mode</th>
+                    <th style="padding: 12px 15px;">Transaction ID</th>
+                    <th style="padding: 12px 15px;">Amount Paid</th>
+                    <th style="padding: 12px 15px; text-align: right;">Receipt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pay in payment_history %}
+                <tr style="border-bottom: 1px solid var(--card-border);">
+                    <td style="padding: 12px 15px; font-weight: 600; color: var(--gold);">{{ pay.receipt_number }}</td>
+                    <td style="padding: 12px 15px; font-weight: 500;">{{ pay.student_fee.fee_structure.name }}</td>
+                    <td style="padding: 12px 15px; color: var(--text-secondary);">{{ pay.paid_at|date:"M j, Y H:i" }}</td>
+                    <td style="padding: 12px 15px;">{{ pay.get_payment_mode_display }}</td>
+                    <td style="padding: 12px 15px; font-family: monospace;">{{ pay.transaction_id }}</td>
+                    <td style="padding: 12px 15px; font-weight: 600; color: #6EE7B7;">${{ pay.amount_paid }}</td>
+                    <td style="padding: 12px 15px; text-align: right;">
+                        <a href="{% url 'receipt_detail' pay.id %}" class="btn-secondary" style="padding: 4px 10px; font-size: 11px; text-decoration: none;" target="_blank">
+                            <i class="fa-solid fa-print" style="margin:0;"></i> Print Receipt
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-secondary); font-style: italic;">
+                        No previous payment transactions registered.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pay Balance Modal -->
+<div id="payModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:1000; justify-content:center; align-items:center;">
+    <div class="glass-panel" style="padding:30px; width: 100%; max-width: 450px; border-color: rgba(212,175,55,0.3);">
+        <h3 style="color: var(--gold); margin-bottom: 10px;" id="payModalTitle">Pay Outstanding Balance</h3>
+        <p style="font-size:12px; color: var(--text-secondary); margin-bottom: 20px;">Simulate invoice credit settlement</p>
+        
+        <form method="POST" id="payModalForm">
+            {% csrf_token %}
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label class="form-label">Payment Amount *</label>
+                <input type="number" name="amount_paid" id="payAmountInput" class="form-input" step="0.01" style="padding-left:10px;" required>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label class="form-label">Mode *</label>
+                {{ payment_form.payment_mode }}
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label class="form-label">Transaction ID Reference (Optional)</label>
+                {{ payment_form.transaction_id }}
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label class="form-label">Memo / Notes</label>
+                {{ payment_form.remarks }}
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" onclick="closePayModal()" class="btn-secondary" style="width:auto;">Cancel</button>
+                <button type="submit" class="btn-primary" style="width:auto; padding:10px 25px;">Authorize Payment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Fine Modal -->
+<div id="fineModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:1000; justify-content:center; align-items:center;">
+    <div class="glass-panel" style="padding:30px; width: 100%; max-width: 450px; border-color: rgba(239,68,68,0.3);">
+        <h3 style="color: var(--danger); margin-bottom: 10px;" id="fineModalTitle">Adjust Fines & Overdues</h3>
+        <p style="font-size:12px; color: var(--text-secondary); margin-bottom: 20px;">Manually assess late fees or waivers</p>
+        
+        <form method="POST" id="fineModalForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" id="fineActionInput" value="ADD">
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label class="form-label">Operation Action *</label>
+                <select id="fineActionSelect" class="form-input" style="padding-left:10px;" onchange="document.getElementById('fineActionInput').value=this.value;">
+                    <option value="ADD">Apply Late Fine</option>
+                    <option value="WAIVE">Waive fine amount</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label class="form-label">Fine Amount *</label>
+                {{ fine_form.fine_amount }}
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label class="form-label">Remarks *</label>
+                {{ fine_form.remarks }}
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" onclick="closeFineModal()" class="btn-secondary" style="width:auto;">Cancel</button>
+                <button type="submit" class="btn-primary" style="width:auto; padding:10px 25px; background: linear-gradient(135deg, var(--danger) 0%, #991b1b 100%);">Resolve Ledger</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openPayModal(feeId, name, balance) {
+    document.getElementById('payModalTitle').innerText = "Pay: " + name;
+    document.getElementById('payAmountInput').value = balance;
+    document.getElementById('payAmountInput').max = balance;
+    document.getElementById('payModalForm').action = "/fees/student/invoice/" + feeId + "/pay/";
+    document.getElementById('payModal').style.display = 'flex';
+}
+function closePayModal() {
+    document.getElementById('payModal').style.display = 'none';
+}
+
+function openFineModal(feeId, name) {
+    document.getElementById('fineModalTitle').innerText = "Ledger Fine: " + name;
+    document.getElementById('fineModalForm').action = "/fees/student/invoice/" + feeId + "/fine/";
+    document.getElementById('fineModal').style.display = 'flex';
+}
+function closeFineModal() {
+    document.getElementById('fineModal').style.display = 'none';
+}
+</script>
+{% endblock %}

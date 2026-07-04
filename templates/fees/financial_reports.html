@@ -1,0 +1,137 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Financial Reports | College Management System{% endblock %}
+
+{% block page_title %}Financial Reports & Ledger Analysis{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 25px; margin-bottom: 30px;">
+    <!-- Title & Export -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
+        <div>
+            <h2 class="section-title" style="margin-bottom: 5px;">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Collections Ledger
+            </h2>
+            <p style="color: var(--text-secondary); font-size: 13px;">Generate summaries, filter student outstanding balances, and export financial audit logs</p>
+        </div>
+        
+        <div style="display:flex; gap:10px;">
+            <button onclick="window.print()" class="btn-secondary" style="width: auto; padding: 10px 20px;">
+                <i class="fa-solid fa-print"></i> Print Ledger
+            </button>
+            <a href="?export=csv&department={{ query_params.department }}&status={{ query_params.status }}" class="btn-primary" style="text-decoration:none; text-align:center; width: auto; padding: 10px 20px;">
+                <i class="fa-solid fa-file-csv"></i> Export CSV Spreadsheet
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters Form -->
+    <form method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; align-items: end;">
+        <!-- Department Filter -->
+        <div class="form-group">
+            <label for="department" class="form-label">Filter Department</label>
+            <select name="department" id="department" class="form-input" style="padding-left:10px;">
+                <option value="">All Departments</option>
+                {% for dept in departments %}
+                <option value="{{ dept.id }}" {% if query_params.department == dept.id|slugify %}selected{% endif %}>{{ dept.code }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="form-group">
+            <label for="status" class="form-label">Payment Status</label>
+            <select name="status" id="status" class="form-input" style="padding-left:10px;">
+                <option value="">All Statuses</option>
+                <option value="UNPAID" {% if query_params.status == 'UNPAID' %}selected{% endif %}>Unpaid</option>
+                <option value="PARTIAL" {% if query_params.status == 'PARTIAL' %}selected{% endif %}>Partial</option>
+                <option value="PAID" {% if query_params.status == 'PAID' %}selected{% endif %}>Paid</option>
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button type="submit" class="btn-primary" style="padding: 12px; width: 50px;">
+                <i class="fa-solid fa-filter" style="margin:0;"></i>
+            </button>
+            <a href="{% url 'financial_reports' %}" class="btn-secondary" style="padding: 12px; width: 50px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+                <i class="fa-solid fa-arrows-rotate" style="margin:0;"></i>
+            </a>
+        </div>
+    </form>
+
+    <!-- Data Table -->
+    <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                    <th style="padding: 12px 15px;">Student</th>
+                    <th style="padding: 12px 15px;">Dept</th>
+                    <th style="padding: 12px 15px;">Fee Title</th>
+                    <th style="padding: 12px 15px;">Base Amount</th>
+                    <th style="padding: 12px 15px; color: var(--danger);">Fines</th>
+                    <th style="padding: 12px 15px; color: #10B981;">Discounts</th>
+                    <th style="padding: 12px 15px;">Total Due</th>
+                    <th style="padding: 12px 15px;">Paid Amount</th>
+                    <th style="padding: 12px 15px;">Remaining Balance</th>
+                    <th style="padding: 12px 15px;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fee in fees_list %}
+                <tr style="border-bottom: 1px solid var(--card-border);" onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 12px 15px;">
+                        <strong style="color:#FFF;">{{ fee.student.full_name }}</strong><br>
+                        <small style="color: var(--gold);">{{ fee.student.register_number }}</small>
+                    </td>
+                    <td style="padding: 12px 15px;">{{ fee.student.department.code }}</td>
+                    <td style="padding: 12px 15px;">{{ fee.fee_structure.name }}</td>
+                    <td style="padding: 12px 15px;">${{ fee.fee_structure.amount }}</td>
+                    <td style="padding: 12px 15px; color: var(--danger); font-weight:600;">+${{ fee.fine_amount }}</td>
+                    <td style="padding: 12px 15px; color: #6EE7B7; font-weight:600;">-${{ fee.discount_amount }}</td>
+                    <td style="padding: 12px 15px; font-weight: 600; color: var(--gold);">${{ fee.total_due }}</td>
+                    <td style="padding: 12px 15px;">${{ fee.amount_paid }}</td>
+                    <td style="padding: 12px 15px; font-weight: 600; color: {% if fee.remaining_balance > 0 %}#FCA5A5{% else %}#6EE7B7{% endif %};">
+                        ${{ fee.remaining_balance }}
+                    </td>
+                    <td style="padding: 12px 15px;">
+                        <span style="font-size: 10px; font-weight: 600; padding: 3px 6px; border-radius: 12px;
+                            {% if fee.status == 'PAID' %}
+                                background: rgba(16, 185, 129, 0.1); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.2);
+                            {% elif fee.status == 'PARTIAL' %}
+                                background: rgba(245, 158, 11, 0.1); color: #FDE047; border: 1px solid rgba(245, 158, 11, 0.2);
+                            {% else %}
+                                background: rgba(239, 68, 68, 0.1); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.2);
+                            {% endif %}">
+                            {{ fee.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                        No billing accounts matching filter parameters.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+@media print {
+    .navbar, .sidebar, form, .btn-primary, .btn-secondary, header {
+        display: none !important;
+    }
+    .main-wrapper {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+    .glass-panel {
+        border-color: #000 !important;
+        background: transparent !important;
+        color: #000 !important;
+    }
+}
+</style>
+{% endblock %}

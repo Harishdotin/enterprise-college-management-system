@@ -1,0 +1,147 @@
+<!-- Floating AI Assistant Button -->
+<div id="ai-chat-btn" style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: #1F2937; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; box-shadow: 0 4px 20px rgba(212,175,55,0.3); transition: var(--transition);" onmouseover="this.style.transform='scale(1.1)';" onmouseout="this.style.transform='scale(1)';">
+    <i class="fa-solid fa-robot" style="font-size: 26px; color: var(--gold);"></i>
+    <span id="ai-chat-badge" style="display:none; position:absolute; top:0; right:0; width:12px; height:12px; background:var(--danger); border-radius:50%; border:2px solid #1F2937;"></span>
+</div>
+
+<!-- Sliding Chat Window -->
+<div id="ai-chat-window" class="glass-panel" style="display: none; position: fixed; bottom: 100px; right: 30px; width: 380px; height: 500px; z-index: 1000; flex-direction: column; border-color: rgba(212,175,55,0.35); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden; padding:0;">
+    <!-- Chat Header -->
+    <div style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--card-border); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-circle" style="color: #10B981; font-size: 10px;"></i>
+            <span style="font-weight: 700; color: var(--gold); font-size: 14px;">Apex Intellect AI</span>
+        </div>
+        <button type="button" onclick="toggleAIChat()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 16px;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <!-- Conversations Logs -->
+    <div id="ai-chat-messages" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; font-size: 13px;">
+        <div style="align-self: flex-start; background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); padding: 10px 14px; border-radius: 12px 12px 12px 0; color: #FFF; max-width: 85%;">
+            Hello! I am your AI assistant. Ask me about attendance, grades, assignments, fee structures, or timetable slots.
+        </div>
+    </div>
+
+    <!-- Suggested prompt chips -->
+    <div style="padding: 10px 20px; display: flex; gap: 8px; overflow-x: auto; background: rgba(0,0,0,0.1); border-top: 1px solid var(--card-border); border-bottom: 1px solid var(--card-border); white-space: nowrap; font-size: 11px;">
+        <button type="button" onclick="sendSuggestedPrompt('Check my attendance')" style="background: rgba(212,175,55,0.05); border: 1px solid rgba(212,175,55,0.2); color: var(--gold); border-radius: 12px; padding: 4px 10px; cursor: pointer;">Check Attendance</button>
+        <button type="button" onclick="sendSuggestedPrompt('Pending assignments')" style="background: rgba(212,175,55,0.05); border: 1px solid rgba(212,175,55,0.2); color: var(--gold); border-radius: 12px; padding: 4px 10px; cursor: pointer;">Assignments</button>
+        <button type="button" onclick="sendSuggestedPrompt('Check outstanding balance')" style="background: rgba(212,175,55,0.05); border: 1px solid rgba(212,175,55,0.2); color: var(--gold); border-radius: 12px; padding: 4px 10px; cursor: pointer;">Billing / Fees</button>
+    </div>
+
+    <!-- Input Form -->
+    <form id="ai-chat-form" style="display: flex; border-top: 1px solid var(--card-border); background: #111827; margin:0;" onsubmit="handleAIChatSubmit(event)">
+        {% csrf_token %}
+        <input type="text" id="ai-chat-input" placeholder="Ask AI Assistant..." style="flex: 1; background: none; border: none; padding: 15px; color: #FFF; font-size: 13px; outline: none;">
+        <button type="submit" style="background: var(--gold); border: none; padding: 0 20px; color: #000; font-weight: 700; cursor: pointer; transition: var(--transition);" onmouseover="this.style.background='#FFD700';" onmouseout="this.style.background='var(--gold)';">
+            <i class="fa-solid fa-paper-plane"></i>
+        </button>
+    </form>
+</div>
+
+<script>
+const chatBtn = document.getElementById('ai-chat-btn');
+const chatWindow = document.getElementById('ai-chat-window');
+const chatMessages = document.getElementById('ai-chat-messages');
+const chatInput = document.getElementById('ai-chat-input');
+
+chatBtn.addEventListener('click', toggleAIChat);
+
+function toggleAIChat() {
+    if (chatWindow.style.display === 'none') {
+        chatWindow.style.display = 'flex';
+        loadChatHistory();
+    } else {
+        chatWindow.style.display = 'none';
+    }
+}
+
+function loadChatHistory() {
+    fetch('/ai/chat/history/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' && data.history.length > 0) {
+                // Clear and repopulate history
+                chatMessages.innerHTML = '';
+                data.history.forEach(m => {
+                    appendMessage(m.role, m.message);
+                });
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
+}
+
+function sendSuggestedPrompt(promptText) {
+    chatInput.value = promptText;
+    document.getElementById('ai-chat-form').dispatchEvent(new Event('submit', { cancelable: true }));
+}
+
+function handleAIChatSubmit(event) {
+    event.preventDefault();
+    const msgText = chatInput.value.trim();
+    if (!msgText) return;
+
+    // Append user message
+    appendMessage('user', msgText);
+    chatInput.value = '';
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // Append loader / typing anim
+    const typingId = 'ai-typing-' + Date.now();
+    appendMessage('assistant', '<i class="fa-solid fa-ellipsis fa-fade"></i> Thinking...', typingId);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // Call API
+    const formData = new FormData();
+    formData.append('message', msgText);
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+    fetch('/ai/chat/send/', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById(typingId).remove();
+        if (data.status === 'success' || data.status === 'fallback') {
+            appendMessage('assistant', data.message);
+        } else {
+            appendMessage('assistant', 'Sorry, I encountered an issue connecting to college information schemas.');
+        }
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    })
+    .catch(() => {
+        document.getElementById(typingId).remove();
+        appendMessage('assistant', 'Connection to database engine failed.');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+}
+
+function appendMessage(role, text, id = null) {
+    const bubble = document.createElement('div');
+    if (id) bubble.id = id;
+    
+    if (role === 'user') {
+        bubble.style.alignSelf = 'flex-end';
+        bubble.style.background = 'var(--gold)';
+        bubble.style.color = '#000';
+        bubble.style.padding = '10px 14px';
+        bubble.style.borderRadius = '12px 12px 0 12px';
+        bubble.style.maxWidth = '85%';
+        bubble.style.fontWeight = '600';
+    } else {
+        bubble.style.alignSelf = 'flex-start';
+        bubble.style.background = 'rgba(255,255,255,0.03)';
+        bubble.style.border = '1px solid var(--card-border)';
+        bubble.style.color = '#FFF';
+        bubble.style.padding = '10px 14px';
+        bubble.style.borderRadius = '12px 12px 12px 0';
+        bubble.style.maxWidth = '85%';
+    }
+    
+    // Parse basic markdown markers like **bold**
+    let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    bubble.innerHTML = formattedText;
+    chatMessages.appendChild(bubble);
+}
+</script>

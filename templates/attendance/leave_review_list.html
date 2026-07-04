@@ -1,0 +1,77 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Leave Approval Queue | College Management System{% endblock %}
+
+{% block page_title %}Leave Approvals Queue{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 25px;">
+    <h2 class="section-title" style="margin-bottom: 25px;">
+        <i class="fa-solid fa-envelope-open-text"></i> Pending Leave Approvals Queue
+    </h2>
+
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        {% for leave in leaves %}
+        <div class="glass-card" style="padding: 25px; border-color: rgba(212,175,55,0.15);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid var(--card-border); padding-bottom: 15px; margin-bottom: 15px;">
+                <div>
+                    <h3 style="font-size: 16px; font-weight: 700; color: var(--gold);">{{ leave.user.username|upper }}</h3>
+                    <span style="font-size: 12px; color: var(--text-secondary);">Role: {{ leave.user.get_role_display }}</span>
+                </div>
+                <span style="font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: rgba(212,175,55,0.1); color: var(--gold); border: 1px solid rgba(212,175,55,0.2);">
+                    {{ leave.get_leave_type_display }}
+                </span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; font-size: 13px;">
+                <div>
+                    <strong style="color: var(--text-secondary); display: block; margin-bottom: 4px;">Duration</strong>
+                    <span>{{ leave.start_date|date:"F j, Y" }} to {{ leave.end_date|date:"F j, Y" }}</span>
+                </div>
+                <div>
+                    <strong style="color: var(--text-secondary); display: block; margin-bottom: 4px;">Reason</strong>
+                    <span>{{ leave.reason }}</span>
+                </div>
+                {% if leave.supporting_document %}
+                <div>
+                    <strong style="color: var(--text-secondary); display: block; margin-bottom: 4px;">Attachment</strong>
+                    <a href="{{ leave.supporting_document.url }}" class="btn-secondary" style="width: auto; display: inline-block; padding: 5px 12px; font-size: 11px;" target="_blank">
+                        <i class="fa-solid fa-file-pdf"></i> View Attachment
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Resolve Form -->
+            <form method="POST" action="{% url 'leave_review_process' leave.id %}" style="background: rgba(255,255,255,0.01); border: 1px solid var(--card-border); padding: 20px; border-radius: 6px;">
+                {% csrf_token %}
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; align-items: start;">
+                    <div class="form-group">
+                        <label class="form-label">Decision Status *</label>
+                        <select name="status" class="form-input" style="padding-left:10px;" required>
+                            <option value="APPROVED">Approve Application</option>
+                            <option value="REJECTED">Reject Application</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Reviewers Comments</label>
+                        <input type="text" name="admin_comments" class="form-input" placeholder="Type comments here..." style="padding-left:10px;">
+                    </div>
+                </div>
+                <div style="margin-top: 15px; text-align: right;">
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 10px 30px;">
+                        <i class="fa-solid fa-check"></i> Submit Resolution
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% empty %}
+        <div style="padding: 50px 20px; text-align: center; color: var(--text-secondary);">
+            <i class="fa-regular fa-envelope" style="font-size: 40px; color: var(--card-border); display: block; margin-bottom: 15px;"></i>
+            <h3>Queue Clear</h3>
+            <p style="font-size: 12px; margin-top: 5px;">There are no pending leave requests requiring review.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

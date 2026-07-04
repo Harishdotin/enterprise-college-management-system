@@ -1,0 +1,28 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Message: {{ message_obj.subject }} | College Management System{% endblock %}
+
+{% block page_title %}Read Message{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 30px; max-width: 700px; margin: 0 auto;">
+    <div style="border-bottom: 1px solid var(--card-border); padding-bottom: 15px; margin-bottom: 20px;">
+        <h2 style="font-size: 20px; font-weight: 700; color: #FFF; margin-bottom: 10px;">{{ message_obj.subject }}</h2>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary);">
+            <div>
+                <span>From: <strong style="color: var(--gold);">{{ message_obj.sender.get_full_name|default:message_obj.sender.username }}</strong></span> &nbsp;|&nbsp; 
+                <span>To: <strong style="color: var(--gold);">{{ message_obj.recipient.get_full_name|default:message_obj.recipient.username }}</strong></span>
+            </div>
+            <span>{{ message_obj.sent_at|date:"M j, Y H:i" }}</span>
+        </div>
+    </div>
+
+    <div style="font-size: 14px; line-height: 1.7; color: #E5E7EB; margin-bottom: 30px; min-height: 150px;">
+        {{ message_obj.body|linebreaks }}
+    </div>
+
+    <div style="display: flex; gap: 15px; border-top: 1px solid var(--card-border); padding-top: 20px;">
+        <a href="{% url 'inbox' %}" class="btn-secondary" style="text-decoration: none; padding: 8px 20px;"><i class="fa-solid fa-arrow-left"></i> Back to Inbox</a>
+    </div>
+</div>
+{% endblock %}

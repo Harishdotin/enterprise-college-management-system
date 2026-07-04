@@ -1,0 +1,35 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Notification Center | College Management System{% endblock %}
+
+{% block page_title %}Notifications Center{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 25px; max-width: 800px; margin: 0 auto;">
+    <h2 class="section-title" style="margin-bottom: 20px;"><i class="fa-solid fa-bell"></i> System Notifications Log</h2>
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for notification in user_notifications %}
+        <div class="glass-card" style="padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; {% if not notification.is_read %}border-left: 4px solid var(--gold); background: rgba(212,175,55,0.03);{% endif %}">
+            <div>
+                <h4 style="font-size: 14px; font-weight: 700; color: {% if not notification.is_read %}var(--gold){% else %}#FFF{% endif %}; margin-bottom: 4px;">
+                    {{ notification.title }}
+                </h4>
+                <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 4px;">{{ notification.message }}</p>
+                <small style="color: var(--text-secondary); font-size: 10px;">{{ notification.created_at|date:"M j, Y H:i" }}</small>
+            </div>
+            {% if not notification.is_read %}
+            <form method="POST" action="{% url 'notification_mark_read' notification.id %}" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn-secondary" style="padding: 4px 10px; font-size: 11px;">Mark Read</button>
+            </form>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+            <i class="fa-regular fa-bell" style="font-size: 35px; color: var(--card-border); margin-bottom: 15px; display: block;"></i>
+            <h3>No Notifications</h3>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

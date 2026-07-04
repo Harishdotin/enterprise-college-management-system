@@ -1,0 +1,64 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Smart Analytics | College Management System{% endblock %}
+
+{% block page_title %}Predictive AI Analytics{% endblock %}
+
+{% block dashboard_content %}
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 40px; align-items: start;">
+    <!-- Department comparisons -->
+    <div class="glass-panel" style="padding: 25px;">
+        <h2 class="section-title" style="margin-bottom: 25px;"><i class="fa-solid fa-chart-bar"></i> Projected Department Performance</h2>
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            {% for d in dept_performance %}
+            <div>
+                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom: 5px;">
+                    <span>Department: <strong>{{ d.dept.code }}</strong> ({{ d.students_count }} active student(s))</span>
+                    <span>Average Predicted GPA: <strong>{{ d.avg_gpa }} / 10.0</strong></span>
+                </div>
+                <div style="height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow:hidden;">
+                    <div style="width: {% widthratio d.avg_gpa 10 100 %}%; height: 100%; background: var(--gold);"></div>
+                </div>
+            </div>
+            {% empty %}
+            <p style="color: var(--text-secondary); text-align:center;">No performance trends available.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Attendance risk indicator SVG -->
+    <div class="glass-panel" style="padding: 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; height:100%;">
+        <h2 class="section-title" style="margin-bottom: 30px; width:100%; text-align:left;"><i class="fa-solid fa-triangle-exclamation"></i> High-Risk Student Ratio</h2>
+        
+        <svg width="150" height="150" viewBox="0 0 36 36" style="transform: rotate(-90deg);">
+            <circle cx="18" cy="18" r="15.9155" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="3" />
+            <circle cx="18" cy="18" r="15.9155" fill="none" stroke="var(--gold)" stroke-width="3.2" 
+                stroke-dasharray="{% widthratio overall_high_risk_count overall_active_count|default:1 100 %}, 100" />
+        </svg>
+        
+        <div style="margin-top: 25px; display: flex; flex-direction:column; gap: 8px; font-size: 12px; width: 100%;">
+            <div style="display:flex; justify-content:space-between; color: var(--text-secondary);">
+                <span>High Attendance Risk Students:</span>
+                <strong style="color:var(--gold);">{{ overall_high_risk_count }}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; color: var(--text-secondary);">
+                <span>Total Active Students:</span>
+                <strong style="color:#FFF;">{{ overall_active_count }}</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Shortcuts Panel -->
+<div class="glass-panel" style="padding: 25px;">
+    <h3 class="section-title" style="margin-bottom: 20px;"><i class="fa-solid fa-link"></i> Intelligence Shortcuts</h3>
+    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <a href="{% url 'ai_predictions' %}" class="btn-secondary" style="text-decoration: none; width: auto; color: var(--gold); border-color: rgba(212,175,55,0.2);">
+            <i class="fa-solid fa-brain"></i> Predictions & Risk Logs
+        </a>
+        <a href="{% url 'ai_search' %}" class="btn-secondary" style="text-decoration: none; width: auto;">
+            <i class="fa-solid fa-magnifying-glass"></i> Natural Language Search
+        </a>
+    </div>
+</div>
+{% endblock %}

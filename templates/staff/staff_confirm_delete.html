@@ -1,0 +1,36 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Delete Staff | College Management System{% endblock %}
+
+{% block page_title %}Security Warning{% endblock %}
+
+{% block dashboard_content %}
+<div style="max-width: 550px; margin: 50px auto;">
+    <div class="glass-panel" style="padding: 40px; text-align: center; border-color: rgba(239, 68, 68, 0.4);">
+        <div style="color: var(--danger); font-size: 55px; margin-bottom: 20px; text-shadow: 0 0 15px rgba(239, 68, 68, 0.2);">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        
+        <h2 style="color: var(--danger); font-weight: 700; margin-bottom: 15px; font-size: 22px;">Delete Faculty Record</h2>
+        <p style="color: var(--text-primary); margin-bottom: 15px; font-size: 15px; font-weight: 500;">
+            Are you sure you want to permanently delete the profile of <strong>{{ object.full_name }}</strong>?
+        </p>
+        
+        <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 13px; line-height: 1.5;">
+            Deleting this profile will permanently remove their linked user account (<strong>{{ object.employee_id }}</strong>), course subject mappings, and portal records. This operation cannot be undone.
+        </p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button type="submit" class="btn-primary" style="width: auto; padding: 12px 30px; background: linear-gradient(135deg, var(--danger) 0%, #991b1b 100%); color: white; border-color: transparent;">
+                    Yes, Confirm Delete
+                </button>
+                <a href="{% url 'staff_list' %}" class="btn-secondary" style="display: flex; align-items: center;">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

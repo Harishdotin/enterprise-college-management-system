@@ -1,0 +1,168 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Examinations | College Management System{% endblock %}
+
+{% block page_title %}Examinations Management{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 25px; margin-bottom: 30px;">
+    <!-- Title & Create Button -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
+        <div>
+            <h2 class="section-title" style="margin-bottom: 5px;">
+                <i class="fa-solid fa-file-invoice"></i> Examination Schedules
+            </h2>
+            <p style="color: var(--text-secondary); font-size: 13px;">Manage examination schedules, maximum/passing marks, and result statuses</p>
+        </div>
+        {% if user.role == 'SUPER_ADMIN' %}
+        <a href="{% url 'exam_add' %}" class="btn-primary" style="width: auto; padding: 10px 20px;">
+            <i class="fa-solid fa-plus"></i> Schedule Exam
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Filters Form -->
+    <form method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 25px; align-items: end;">
+        <!-- Search -->
+        <div style="grid-column: span 2; min-width: 250px;">
+            <label for="search" class="form-label">Search Exam</label>
+            <div class="input-container">
+                <input type="text" name="search" id="search" class="form-input" placeholder="Exam Name or Subject code..." value="{{ query_params.search|default:'' }}" style="padding-left:35px;">
+                <i class="fa-solid fa-magnifying-glass" style="left:12px;"></i>
+            </div>
+        </div>
+
+        <!-- Department Filter -->
+        <div>
+            <label for="department" class="form-label">Department</label>
+            <select name="department" id="department" class="form-input" style="padding-left: 10px;">
+                <option value="">All Departments</option>
+                {% for dept in departments %}
+                <option value="{{ dept.id }}" {% if query_params.department == dept.id|slugify %}selected{% endif %}>{{ dept.code }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Status Filter -->
+        <div>
+            <label for="status" class="form-label">Status</label>
+            <select name="status" id="status" class="form-input" style="padding-left: 10px;">
+                <option value="">All Statuses</option>
+                <option value="DRAFT" {% if query_params.status == 'DRAFT' %}selected{% endif %}>Draft</option>
+                <option value="PUBLISHED" {% if query_params.status == 'PUBLISHED' %}selected{% endif %}>Published</option>
+                <option value="RESULTS_PUBLISHED" {% if query_params.status == 'RESULTS_PUBLISHED' %}selected{% endif %}>Results Published</option>
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button type="submit" class="btn-primary" style="padding: 10px; width: 50px;">
+                <i class="fa-solid fa-filter" style="margin: 0;"></i>
+            </button>
+            <a href="{% url 'exam_list' %}" class="btn-secondary" style="padding: 10px; width: 50px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-arrows-rotate" style="margin: 0;"></i>
+            </a>
+        </div>
+    </form>
+
+    <!-- Data Table -->
+    <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                    <th style="padding: 15px 20px;">Exam Details</th>
+                    <th style="padding: 15px 20px;">Course & Sem</th>
+                    <th style="padding: 15px 20px;">Subject</th>
+                    <th style="padding: 15px 20px;">Maximum / Passing Marks</th>
+                    <th style="padding: 15px 20px;">Status</th>
+                    <th style="padding: 15px 20px; text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exam in exams %}
+                <tr style="border-bottom: 1px solid var(--card-border); transition: var(--transition);" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 15px 20px;">
+                        <div style="font-weight: 600; color: var(--gold);">{{ exam.name }}</div>
+                        <small style="color: var(--text-secondary); display:block; margin-top:2px;">{{ exam.get_exam_type_display }} | {{ exam.exam_date|date:"M j, Y" }}</small>
+                    </td>
+                    <td style="padding: 15px 20px;">
+                        <div>{{ exam.course.code }}</div>
+                        <small style="color: var(--text-secondary);">Semester {{ exam.semester.number }}</small>
+                    </td>
+                    <td style="padding: 15px 20px;">{{ exam.subject.name }} ({{ exam.subject.code }})</td>
+                    <td style="padding: 15px 20px;">
+                        <span style="font-weight: 500;">{{ exam.maximum_marks }}</span> / <span style="color: var(--danger); font-weight:500;">{{ exam.passing_marks }}</span>
+                    </td>
+                    <td style="padding: 15px 20px;">
+                        <span style="font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 20px;
+                            {% if exam.status == 'RESULTS_PUBLISHED' %}
+                                background: rgba(16, 185, 129, 0.1); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.2);
+                            {% elif exam.status == 'PUBLISHED' %}
+                                background: rgba(245, 158, 11, 0.1); color: #FDE047; border: 1px solid rgba(245, 158, 11, 0.2);
+                            {% else %}
+                                background: rgba(156, 163, 175, 0.1); color: #D1D5DB; border: 1px solid rgba(156, 163, 175, 0.2);
+                            {% endif %}">
+                            {{ exam.get_status_display }}
+                        </span>
+                    </td>
+                    <td style="padding: 15px 20px; text-align: right; display: flex; justify-content: flex-end; gap: 10px; align-items: center; height: 60px;">
+                        <!-- Publish Exam (Admin only) -->
+                        {% if user.role == 'SUPER_ADMIN' and exam.status == 'DRAFT' %}
+                        <form method="POST" action="{% url 'exam_publish' exam.id %}" style="margin:0;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-primary" style="padding: 5px 12px; font-size: 11px; width: auto;">
+                                <i class="fa-solid fa-bullhorn"></i> Publish Schedule
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <!-- Mark Entry (Staff or Admin) -->
+                        {% if exam.status == 'PUBLISHED' or exam.status == 'RESULTS_PUBLISHED' %}
+                        <a href="{% url 'marks_entry' exam.id %}" class="btn-secondary" style="padding: 5px 12px; font-size: 11px; color: var(--gold); border-color: rgba(212,175,55,0.25); text-decoration: none;">
+                            <i class="fa-solid fa-pen-to-square"></i> Enter Marks
+                        </a>
+                        {% endif %}
+
+                        <!-- Publish Results (Admin only) -->
+                        {% if user.role == 'SUPER_ADMIN' and exam.status == 'PUBLISHED' %}
+                        <form method="POST" action="{% url 'publish_results' exam.id %}" style="margin:0;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-primary" style="padding: 5px 12px; font-size: 11px; width: auto; background: linear-gradient(135deg, #10b981 0%, #047857 100%);">
+                                <i class="fa-solid fa-check"></i> Publish Results
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <!-- Edit/Delete (Admin only) -->
+                        {% if user.role == 'SUPER_ADMIN' %}
+                        <a href="{% url 'exam_edit' exam.id %}" class="btn-secondary" style="padding: 6px 12px; font-size: 12px; border-color: rgba(255,255,255,0.05);" title="Edit"><i class="fa-solid fa-pen" style="margin:0;"></i></a>
+                        <a href="{% url 'exam_delete' exam.id %}" class="btn-secondary" style="padding: 6px 12px; font-size: 12px; border-color: rgba(239,68,68,0.15); color: var(--danger);" title="Delete"><i class="fa-solid fa-trash-can" style="margin:0;"></i></a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 40px 20px; text-align: center; color: var(--text-secondary);">
+                        No examinations scheduled. Click "Schedule Exam" to start.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px;">
+        <span style="font-size: 12px; color: var(--text-secondary);">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+        <div style="display: flex; gap: 8px;">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&search={{ query_params.search }}&status={{ query_params.status }}" class="btn-secondary" style="padding: 8px 14px; font-size: 13px;">Prev</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&search={{ query_params.search }}&status={{ query_params.status }}" class="btn-secondary" style="padding: 8px 14px; font-size: 13px;">Next</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

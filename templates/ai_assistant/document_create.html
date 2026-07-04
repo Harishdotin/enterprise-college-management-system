@@ -1,0 +1,78 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Generate Document | College Management System{% endblock %}
+
+{% block page_title %}Generate New AI Document{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 25px; margin-bottom: 30px; max-width: 800px; margin-left: auto; margin-right: auto;">
+    <h2 class="section-title" style="margin-bottom: 10px;"><i class="fa-solid fa-file-signature"></i> Create Document Form</h2>
+    <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 25px;">Enter document specifications. The assistant will compile authorized databases profile records and generate the copy.</p>
+
+    {% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+        <div style="background: rgba(239,68,68,0.15); border: 1px solid var(--danger); color: #FFF; border-radius: 8px; padding: 12px 15px; font-size: 13px;">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" id="doc-generation-form" onsubmit="handleDocGenerateSubmit(event)">
+        {% csrf_token %}
+        
+        <!-- Document Type Selector -->
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label for="document_type" style="font-weight: 600; color: var(--gold); display: block; margin-bottom: 8px; font-size: 13px;">Select Document Type</label>
+            <select name="document_type" id="document_type" class="form-input" style="height: 45px;" required>
+                <option value="" disabled selected>-- Choose Document Type --</option>
+                {% for dtype in document_types %}
+                <option value="{{ dtype }}">{{ dtype }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Tone Selector -->
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label for="tone" style="font-weight: 600; color: var(--gold); display: block; margin-bottom: 8px; font-size: 13px;">Preferred Tone</label>
+            <select name="tone" id="tone" class="form-input" style="height: 45px;" required>
+                {% for t in tones %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Specific details -->
+        <div class="form-group" style="margin-bottom: 25px;">
+            <label for="details" style="font-weight: 600; color: var(--gold); display: block; margin-bottom: 8px; font-size: 13px;">Request Details / Context Instructions</label>
+            <textarea name="details" id="details" class="form-input" rows="6" placeholder="e.g. Leave for tomorrow due to personal family medical checkups; Internship permission request for next 2 months..." style="resize: none; padding-top: 12px;" required></textarea>
+            <small style="color: var(--text-secondary); display: block; margin-top: 6px; font-size: 11px;">Be specific. Mention dates, reasons, and target recipients where applicable.</small>
+        </div>
+
+        <!-- Action Submit Buttons -->
+        <div style="display: flex; gap: 15px; justify-content: flex-end;">
+            <a href="{% url 'ai_document_list' %}" class="btn-secondary" style="width: auto; padding: 12px 25px; text-decoration: none; display: flex; align-items: center; justify-content: center;">
+                Cancel
+            </a>
+            <button type="submit" id="generate-btn" class="btn-primary" style="width: auto; padding: 12px 30px; display: flex; align-items: center; gap: 8px; justify-content: center;">
+                <span id="btn-text"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Draft</span>
+                <i class="fa-solid fa-spinner fa-spin" id="btn-spinner" style="display: none;"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function handleDocGenerateSubmit(event) {
+    const btnText = document.getElementById('btn-text');
+    const btnSpinner = document.getElementById('btn-spinner');
+    const generateBtn = document.getElementById('generate-btn');
+    
+    // Disable inputs and reveal loader spinner
+    generateBtn.disabled = true;
+    btnText.innerText = "Drafting document...";
+    btnSpinner.style.display = "inline-block";
+}
+</script>
+{% endblock %}

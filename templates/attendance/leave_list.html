@@ -1,0 +1,84 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}My Leave Applications | College Management System{% endblock %}
+
+{% block page_title %}Leave Management{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 25px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h2 class="section-title" style="margin-bottom: 5px;">
+                <i class="fa-solid fa-house-laptop"></i> Leave Applications
+            </h2>
+            <p style="color: var(--text-secondary); font-size: 13px;">View and track leave request status approvals</p>
+        </div>
+        <a href="{% url 'leave_apply' %}" class="btn-primary" style="width: auto; padding: 10px 20px;">
+            <i class="fa-solid fa-plus"></i> Apply for Leave
+        </a>
+    </div>
+
+    <div style="overflow-x: auto; border: 1px solid var(--card-border); border-radius: var(--border-radius);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02);">
+                    <th style="padding: 15px 20px;">Leave Type</th>
+                    <th style="padding: 15px 20px;">Start Date</th>
+                    <th style="padding: 15px 20px;">End Date</th>
+                    <th style="padding: 15px 20px;">Reason</th>
+                    <th style="padding: 15px 20px;">Status</th>
+                    <th style="padding: 15px 20px; text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for leave in leaves %}
+                <tr style="border-bottom: 1px solid var(--card-border); transition: var(--transition);" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 15px 20px; font-weight: 600; color: var(--gold);">{{ leave.get_leave_type_display }}</td>
+                    <td style="padding: 15px 20px;">{{ leave.start_date|date:"M j, Y" }}</td>
+                    <td style="padding: 15px 20px;">{{ leave.end_date|date:"M j, Y" }}</td>
+                    <td style="padding: 15px 20px;">
+                        <div>{{ leave.reason|truncatechars:50 }}</div>
+                        {% if leave.admin_comments %}
+                        <small style="color: var(--gold); display:block; margin-top:2px;">HOD: {{ leave.admin_comments }}</small>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 15px 20px;">
+                        <span style="font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 20px;
+                            {% if leave.status == 'APPROVED' %}
+                                background: rgba(16, 185, 129, 0.1); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.2);
+                            {% elif leave.status == 'PENDING' %}
+                                background: rgba(245, 158, 11, 0.1); color: #FDE047; border: 1px solid rgba(245, 158, 11, 0.2);
+                            {% else %}
+                                background: rgba(239, 68, 68, 0.1); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.2);
+                            {% endif %}">
+                            {{ leave.get_status_display }}
+                        </span>
+                    </td>
+                    <td style="padding: 15px 20px; text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
+                        {% if leave.supporting_document %}
+                        <a href="{{ leave.supporting_document.url }}" class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" target="_blank" title="Download Document">
+                            <i class="fa-solid fa-file-pdf" style="margin:0;"></i>
+                        </a>
+                        {% endif %}
+                        {% if leave.status == 'PENDING' %}
+                        <form method="POST" action="{% url 'leave_cancel' leave.id %}" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-secondary" style="padding: 6px 12px; font-size: 12px; color: var(--danger); border-color: rgba(239,68,68,0.2);" title="Cancel Application">
+                                <i class="fa-solid fa-ban" style="margin:0;"></i> Cancel
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 40px 20px; text-align: center; color: var(--text-secondary);">
+                        No Leave Applications filed. Click "Apply for Leave" to start.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

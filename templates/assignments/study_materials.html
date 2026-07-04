@@ -1,0 +1,93 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Study Materials | College Management System{% endblock %}
+
+{% block page_title %}Study Materials Repository{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 25px; margin-bottom: 30px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
+        <div>
+            <h2 class="section-title" style="margin-bottom: 5px;"><i class="fa-solid fa-book-open"></i> Course Study Resources</h2>
+            <p style="color: var(--text-secondary); font-size: 13px;">Download course materials, lecture notes, syllabus guides, and reference documents</p>
+        </div>
+        {% if user.role == 'SUPER_ADMIN' or user.role == 'STAFF' %}
+        <button type="button" onclick="document.getElementById('uploadModal').style.display='flex'" class="btn-primary" style="width: auto; padding: 10px 20px;">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resource
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Filters -->
+    <form method="GET" style="display: flex; gap: 15px; margin-bottom: 25px; align-items: end; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px;">
+            <label for="search" class="form-label">Search Materials</label>
+            <input type="text" name="search" id="search" class="form-input" placeholder="Title or subject..." value="{{ query_params.search|default:'' }}" style="padding-left:10px;">
+        </div>
+        <div style="min-width: 200px;">
+            <label for="subject" class="form-label">Subject</label>
+            <select name="subject" id="subject" class="form-input" style="padding-left:10px;">
+                <option value="">All Subjects</option>
+                {% for sub in subjects %}
+                <option value="{{ sub.id }}" {% if query_params.subject == sub.id|slugify %}selected{% endif %}>{{ sub.name }} ({{ sub.code }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn-primary" style="width: auto; padding: 10px 20px;">Filter</button>
+    </form>
+
+    <!-- Materials Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+        {% for material in materials %}
+        <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between; border-color: rgba(212,175,55,0.15);">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 12px; background: rgba(212,175,55,0.1); color: var(--gold); border: 1px solid rgba(212,175,55,0.2);">
+                        {{ material.subject.code }}
+                    </span>
+                    <small style="color: var(--text-secondary); font-size: 10px;">{{ material.uploaded_at|date:"M j, Y" }}</small>
+                </div>
+                <h3 style="font-size: 15px; font-weight: 700; color: #FFF; margin-bottom: 6px;">{{ material.title }}</h3>
+                <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 15px;">{{ material.description|default:"No description provided."|truncatewords:15 }}</p>
+            </div>
+
+            <div style="border-top: 1px solid var(--card-border); padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <small style="color: var(--text-secondary); font-size: 11px;">By {{ material.uploaded_by.username }}</small>
+                <a href="{{ material.file.url }}" target="_blank" class="btn-secondary" style="padding: 6px 14px; font-size: 11px; text-decoration: none; color: var(--gold); border-color: rgba(212,175,55,0.3);">
+                    <i class="fa-solid fa-download"></i> Download
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: var(--text-secondary);">
+            <i class="fa-solid fa-folder-open" style="font-size: 40px; color: var(--card-border); margin-bottom: 15px; display: block;"></i>
+            <h3>No Study Materials Found</h3>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% if user.role == 'SUPER_ADMIN' or user.role == 'STAFF' %}
+<!-- Upload Modal -->
+<div id="uploadModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:1000; justify-content:center; align-items:center;">
+    <div class="glass-panel" style="padding:30px; width: 100%; max-width: 550px; border-color: rgba(212,175,55,0.3); max-height: 90vh; overflow-y: auto;">
+        <h3 style="color: var(--gold); margin-bottom: 15px;">Upload Study Resource</h3>
+        <form method="POST" action="{% url 'study_material_upload' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                {% for field in form %}
+                <div class="form-group">
+                    <label class="form-label" style="font-weight:500;">{{ field.label }} *</label>
+                    {{ field }}
+                </div>
+                {% endfor %}
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top: 20px;">
+                <button type="button" onclick="document.getElementById('uploadModal').style.display='none'" class="btn-secondary" style="width:auto;">Cancel</button>
+                <button type="submit" class="btn-primary" style="width:auto; padding:10px 25px;">Upload File</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

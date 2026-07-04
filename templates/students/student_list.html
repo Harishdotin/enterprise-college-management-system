@@ -1,0 +1,180 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Student Roster | College Management System{% endblock %}
+
+{% block page_title %}Student Roster{% endblock %}
+
+{% block dashboard_content %}
+<div class="glass-panel" style="padding: 25px; margin-bottom: 30px;">
+    <!-- Header with Action Button -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
+        <div>
+            <h2 class="section-title" style="margin-bottom: 5px;">
+                <i class="fa-solid fa-user-graduate"></i> Active Student Registrations
+            </h2>
+            <p style="color: var(--text-secondary); font-size: 13px;">Manage, filter, and review student accounts across departments</p>
+        </div>
+        <a href="{% url 'student_add' %}" class="btn-primary" style="width: auto; padding: 10px 20px;">
+            <i class="fa-solid fa-user-plus"></i> Add New Student
+        </a>
+    </div>
+
+    <!-- Filters & Search Form -->
+    <form method="GET" action="{% url 'student_list' %}" style="margin-bottom: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end;">
+        <!-- Search Input -->
+        <div style="grid-column: span 2; min-width: 250px;">
+            <label for="search" class="form-label">Search Students</label>
+            <div class="input-container">
+                <input type="text" name="search" id="search" class="form-input" placeholder="Name, Register/Admission No..." value="{{ query_params.search|default:'' }}" style="padding-left: 35px;">
+                <i class="fa-solid fa-magnifying-glass" style="left: 12px;"></i>
+            </div>
+        </div>
+
+        <!-- Department Filter -->
+        <div>
+            <label for="department" class="form-label">Department</label>
+            <select name="department" id="department" class="form-input" style="padding-left: 10px;">
+                <option value="">All Departments</option>
+                {% for dept in departments %}
+                <option value="{{ dept.id }}" {% if query_params.department == dept.id|slugify %}selected{% endif %}>{{ dept.code }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Course Filter -->
+        <div>
+            <label for="course" class="form-label">Course</label>
+            <select name="course" id="course" class="form-input" style="padding-left: 10px;">
+                <option value="">All Courses</option>
+                {% for crs in courses %}
+                <option value="{{ crs.id }}" {% if query_params.course == crs.id|slugify %}selected{% endif %}>{{ crs.code }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Semester Filter -->
+        <div>
+            <label for="semester" class="form-label">Semester</label>
+            <select name="semester" id="semester" class="form-input" style="padding-left: 10px;">
+                <option value="">All Semesters</option>
+                {% for sem in semesters %}
+                <option value="{{ sem.id }}" {% if query_params.semester == sem.id|slugify %}selected{% endif %}>Semester {{ sem.number }} ({{ sem.course.code }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Status Filter -->
+        <div>
+            <label for="status" class="form-label">Status</label>
+            <select name="status" id="status" class="form-input" style="padding-left: 10px;">
+                <option value="">All Statuses</option>
+                <option value="ACTIVE" {% if query_params.status == 'ACTIVE' %}selected{% endif %}>Active</option>
+                <option value="INACTIVE" {% if query_params.status == 'INACTIVE' %}selected{% endif %}>Inactive</option>
+                <option value="SUSPENDED" {% if query_params.status == 'SUSPENDED' %}selected{% endif %}>Suspended</option>
+            </select>
+        </div>
+
+        <!-- Filter Actions -->
+        <div style="display: flex; gap: 10px;">
+            <button type="submit" class="btn-primary" style="padding: 10px; width: 50px;" title="Apply Filters">
+                <i class="fa-solid fa-filter" style="margin: 0;"></i>
+            </button>
+            <a href="{% url 'student_list' %}" class="btn-secondary" style="padding: 10px; width: 50px; display: flex; align-items: center; justify-content: center;" title="Reset Filters">
+                <i class="fa-solid fa-arrows-rotate" style="margin: 0;"></i>
+            </a>
+        </div>
+    </form>
+
+    <!-- Data Table -->
+    <div style="overflow-x: auto; border-radius: var(--border-radius); border: 1px solid var(--card-border);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; background: rgba(31, 41, 55, 0.2);">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--card-border); background: rgba(255, 255, 255, 0.02);">
+                    <th style="padding: 15px 20px;"><a href="?{% for k,v in query_params.items %}{% if k != 'sort' %}{{ k }}={{ v }}&{% endif %}{% endfor %}sort={% if query_params.sort == 'register_number' %}-{% endif %}register_number" style="color: var(--text-primary); text-decoration: none;">Reg Number <i class="fa-solid fa-sort" style="font-size: 10px; margin-left: 5px;"></i></a></th>
+                    <th style="padding: 15px 20px;"><a href="?{% for k,v in query_params.items %}{% if k != 'sort' %}{{ k }}={{ v }}&{% endif %}{% endfor %}sort={% if query_params.sort == 'full_name' %}-{% endif %}full_name" style="color: var(--text-primary); text-decoration: none;">Name <i class="fa-solid fa-sort" style="font-size: 10px; margin-left: 5px;"></i></a></th>
+                    <th style="padding: 15px 20px;">Department</th>
+                    <th style="padding: 15px 20px;">Semester</th>
+                    <th style="padding: 15px 20px;">Status</th>
+                    <th style="padding: 15px 20px; text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr style="border-bottom: 1px solid var(--card-border); transition: var(--transition);" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 15px 20px; font-weight: 600; color: var(--gold);">{{ student.register_number }}</td>
+                    <td style="padding: 15px 20px; display: flex; align-items: center; gap: 10px;">
+                        {% if student.profile_photo %}
+                            <img src="{{ student.profile_photo.url }}" alt="" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--gold);">
+                        {% else %}
+                            <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--gold-glow); color: var(--gold); font-weight: bold; font-size: 12px;">
+                                {{ student.full_name|slice:":2"|upper }}
+                            </div>
+                        {% endif %}
+                        <div>
+                            <div style="font-weight: 500;">{{ student.full_name }}</div>
+                            <div style="font-size: 11px; color: var(--text-secondary);">{{ student.email }}</div>
+                        </div>
+                    </td>
+                    <td style="padding: 15px 20px;">{{ student.department.code }}</td>
+                    <td style="padding: 15px 20px;">Sem {{ student.semester.number }}</td>
+                    <td style="padding: 15px 20px;">
+                        <span style="font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 20px; 
+                            {% if student.status == 'ACTIVE' %}
+                                background: rgba(16, 185, 129, 0.1); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.2);
+                            {% elif student.status == 'INACTIVE' %}
+                                background: rgba(156, 163, 175, 0.1); color: #D1D5DB; border: 1px solid rgba(156, 163, 175, 0.2);
+                            {% else %}
+                                background: rgba(239, 68, 68, 0.1); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.2);
+                            {% endif %}">
+                            {{ student.get_status_display }}
+                        </span>
+                    </td>
+                    <td style="padding: 15px 20px; text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
+                        <a href="{% url 'student_detail' student.id %}" class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" title="View Student details">
+                            <i class="fa-solid fa-eye" style="margin:0;"></i>
+                        </a>
+                        <a href="{% url 'student_edit' student.id %}" class="btn-secondary" style="padding: 6px 12px; font-size: 12px; border-color: rgba(212,175,55,0.2); color: var(--gold);" title="Edit Profile">
+                            <i class="fa-solid fa-pen" style="margin:0;"></i>
+                        </a>
+                        {% if user.role == 'SUPER_ADMIN' %}
+                        <a href="{% url 'student_delete' student.id %}" class="btn-secondary" style="padding: 6px 12px; font-size: 12px; border-color: rgba(239,68,68,0.2); color: var(--danger);" title="Delete Student Record">
+                            <i class="fa-solid fa-trash-can" style="margin:0;"></i>
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 50px 20px; text-align: center; color: var(--text-secondary);">
+                        <i class="fa-regular fa-folder-open" style="font-size: 40px; color: var(--card-border); display: block; margin-bottom: 15px;"></i>
+                        <h3>No Records Found</h3>
+                        <p style="font-size: 12px; margin-top: 5px;">Try relaxing your search parameters or register a new student.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px; flex-wrap: wrap; gap: 10px;">
+        <span style="font-size: 13px; color: var(--text-secondary);">
+            Showing page {{ page_obj.number }} of {{ paginator.num_pages }}
+        </span>
+        <div style="display: flex; gap: 8px;">
+            {% if page_obj.has_previous %}
+                <a href="?{% for k,v in query_params.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" class="btn-secondary" style="padding: 8px 14px; font-size: 13px;">
+                    <i class="fa-solid fa-chevron-left" style="margin: 0 5px 0 0;"></i> Previous
+                </a>
+            {% endif %}
+            {% if page_obj.has_next %}
+                <a href="?{% for k,v in query_params.items %}{% if k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" class="btn-secondary" style="padding: 8px 14px; font-size: 13px;">
+                    Next <i class="fa-solid fa-chevron-right" style="margin: 0 0 0 5px;"></i>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}College Management System{% endblock %}</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% block body_content %}
+    {% endblock %}
+
+    <script>
+        // Common sidebar toggle logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const mainWrapper = document.getElementById('main-wrapper');
+
+            if (toggleBtn && sidebar && mainWrapper) {
+                toggleBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (window.innerWidth > 768) {
+                        sidebar.classList.toggle('collapsed');
+                        mainWrapper.classList.toggle('sidebar-collapsed');
+                    } else {
+                        sidebar.classList.toggle('mobile-open');
+                    }
+                });
+            }
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('mobile-open')) {
+                    if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+                        sidebar.classList.remove('mobile-open');
+                    }
+                }
+            });
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+
+    <style>
+select {
+    background: #1F2937 !important;
+    color: #ffffff !important;
+}
+
+select option {
+    background: #ffffff !important;
+    color: #000000 !important;
+}
+</style>
+</body>
+</html>

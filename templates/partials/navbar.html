@@ -1,0 +1,31 @@
+<nav class="navbar">
+    <div class="nav-left">
+        <button id="sidebar-toggle" class="toggle-sidebar-btn" aria-label="Toggle Sidebar">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <h1 class="page-title">{% block page_title %}Overview{% endblock %}</h1>
+    </div>
+    
+    <div class="nav-right">
+        <!-- Notification Center -->
+        <button class="nav-icon-btn" aria-label="View Notifications">
+            <i class="fa-regular fa-bell"></i>
+            <span class="notification-badge"></span>
+        </button>
+
+        <!-- User Profile Dropdown/Link -->
+        <div class="user-profile-menu">
+            {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="Profile" class="avatar">
+            {% else %}
+                <div class="avatar" style="display: flex; align-items: center; justify-content: center; background: var(--gold-glow); color: var(--gold); font-weight: 700; font-size: 14px;">
+                    {{ user.username|slice:":2"|upper }}
+                </div>
+            {% endif %}
+            <div class="user-details">
+                <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                <span class="user-role">{{ user.get_role_display|default:"Guest" }}</span>
+            </div>
+        </div>
+    </div>
+</nav>

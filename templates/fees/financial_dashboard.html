@@ -1,0 +1,112 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Financial Dashboard | College Management System{% endblock %}
+
+{% block page_title %}Financial Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<!-- Stats Grid -->
+<div class="stats-grid" style="margin-bottom: 30px;">
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Total Fees Collected</h3>
+            <p style="color: #6EE7B7;">${{ total_collected }}</p>
+            <small style="color: var(--text-secondary);">Cumulative system collections</small>
+        </div>
+        <div class="stat-icon" style="color: #10B981; background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.18);">
+            <i class="fa-solid fa-vault"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Pending / Outstanding</h3>
+            <p style="color: #FCA5A5;">${{ total_outstanding }}</p>
+            <small style="color: var(--text-secondary);">Unpaid invoice balances</small>
+        </div>
+        <div class="stat-icon" style="color: var(--danger); background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.18);">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Today's Collection</h3>
+            <p style="color: var(--gold);">${{ todays_collection }}</p>
+            <small style="color: var(--text-secondary);">Payments recorded today</small>
+        </div>
+        <div class="stat-icon" style="color: var(--gold); background: rgba(212,175,55,0.08); border-color: rgba(212,175,55,0.18);">
+            <i class="fa-solid fa-coins"></i>
+        </div>
+    </div>
+    
+    <div class="stat-card glass-card">
+        <div class="stat-info">
+            <h3>Active Scholarships</h3>
+            <p>${{ total_scholarships }}</p>
+            <small style="color: var(--text-secondary);">Total discount credits applied</small>
+        </div>
+        <div class="stat-icon">
+            <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Dashboard Grid -->
+<div class="dashboard-grid" style="grid-template-columns: 1.5fr 1fr; gap: 30px; margin-bottom: 40px;">
+    <!-- Department-wise Collections -->
+    <div class="glass-panel" style="padding: 25px;">
+        <h2 class="section-title"><i class="fa-solid fa-building-columns"></i> Department Collection Analysis</h2>
+        <div style="display: flex; flex-direction: column; gap: 18px; margin-top: 25px;">
+            {% for dept in dept_collections %}
+            <div>
+                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom: 4px;">
+                    <span>Department: <strong>{{ dept.student_fee__student__department__code|default:"General" }}</strong></span>
+                    <span>Total Collected: <strong>${{ dept.total }}</strong></span>
+                </div>
+                <div style="height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow:hidden;">
+                    <div style="width: {% widthratio dept.total total_collected|default:1 100 %}%; height: 100%; background: var(--gold);"></div>
+                </div>
+            </div>
+            {% empty %}
+            <p style="color: var(--text-secondary); text-align:center; padding: 20px;">No transaction logs available.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Category Distribution SVG -->
+    <div class="glass-panel" style="padding: 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+        <h2 class="section-title" style="margin-bottom: 30px; width:100%; text-align:left;"><i class="fa-solid fa-pie-chart"></i> Category Distribution</h2>
+        
+        <svg width="150" height="150" viewBox="0 0 36 36" style="transform: rotate(-90deg);">
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="3" />
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--gold)" stroke-width="3.2" stroke-dasharray="70, 100" />
+        </svg>
+        
+        <div style="margin-top: 25px; display: flex; flex-direction:column; gap: 8px; font-size: 11px; width: 100%;">
+            {% for cat in category_collections|slice:":3" %}
+            <div style="display:flex; justify-content:space-between; color: var(--text-secondary);">
+                <span>{{ cat.student_fee__fee_structure__category__name }}:</span>
+                <strong style="color:#FFF;">${{ cat.total }}</strong>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Shortcuts Panel -->
+<div class="glass-panel" style="padding: 25px;">
+    <h3 class="section-title" style="margin-bottom: 20px;"><i class="fa-solid fa-link"></i> Financial Operations Shortcuts</h3>
+    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <a href="{% url 'fee_structure_list' %}" class="btn-secondary" style="text-decoration: none; width: auto; color: var(--gold); border-color: rgba(212,175,55,0.2);">
+            <i class="fa-solid fa-list"></i> Setup Fee Structures
+        </a>
+        <a href="{% url 'scholarship_list' %}" class="btn-secondary" style="text-decoration: none; width: auto;">
+            <i class="fa-solid fa-graduation-cap"></i> Scholarship Rules
+        </a>
+        <a href="{% url 'financial_reports' %}" class="btn-secondary" style="text-decoration: none; width: auto;">
+            <i class="fa-solid fa-file-invoice-dollar"></i> Generate Financial Reports
+        </a>
+    </div>
+</div>
+{% endblock %}
