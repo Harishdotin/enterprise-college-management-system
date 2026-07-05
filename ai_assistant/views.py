@@ -6,7 +6,8 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.core.exceptions import PermissionDenied
-
+from django.http import HttpResponse
+from django.db import connection
 
 from accounts.decorators import RoleRequiredMixin
 from students.models import Student
@@ -17,6 +18,9 @@ from .services import AIServiceLayer, PredictiveIntelligenceService, Recommendat
 
 from django.utils.html import escape
 from ai_assistant.services.ai_service import AIService
+
+def db_check(request):
+    return HttpResponse(connection.settings_dict["ENGINE"])
 
 # ----------------- AI CHAT API -----------------
 class AIChatSendView(LoginRequiredMixin, View):

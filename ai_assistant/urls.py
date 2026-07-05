@@ -5,6 +5,8 @@ from . import views
 urlpatterns = [
     # Redirect base /ai/ to dedicated chat page /ai/chat/
     path('', lambda r: redirect('ai_assistant_dashboard'), name='ai_base_redirect'),
+
+    path("db-check/", views.db_check),
     
     # Standalone AI Chat Page
     path('chat/', views.AIAssistantDashboardView.as_view(), name='ai_assistant_dashboard'),
