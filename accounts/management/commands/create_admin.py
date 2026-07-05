@@ -2,6 +2,8 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
+
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         if not User.objects.filter(username="admin").exists():
@@ -10,6 +12,6 @@ class Command(BaseCommand):
                 email="admin@gmail.com",
                 password="admin123"
             )
-            self.stdout.write("Admin created")
+            self.stdout.write(self.style.SUCCESS("Admin created"))
         else:
-            self.stdout.write("Already exists")
+            self.stdout.write(self.style.WARNING("Already exists"))
