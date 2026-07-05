@@ -68,9 +68,9 @@ class StudentListView(LoginRequiredMixin, RoleRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['departments'] = Department.objects.all()
-        context['courses'] = Course.objects.all()
-        context['semesters'] = Semester.objects.all()
+        context['departments'] = Department.objects.all().order_by('name')
+        context['courses'] = Course.objects.all().order_by('name')
+        context['semesters'] = Semester.objects.all().order_by('course__code', 'number')
         context['query_params'] = self.request.GET.dict()
         return context
 

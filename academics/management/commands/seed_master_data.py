@@ -31,16 +31,32 @@ class Command(BaseCommand):
                 else:
                     self.stdout.write("Academic Year '2026-2027' already active.")
 
-                # 2. Seed Departments
+                # 2. Cleanup obsolete MECH and CIVIL departments and courses (renamed to ME and CE)
+                # Since we checked that no students are using them, we can safely delete them.
+                self.stdout.write("Cleaning up obsolete database entries...")
+                Course.objects.filter(code__in=["BTECH-MECH", "BTECH-CIVIL"]).delete()
+                Department.objects.filter(code__in=["MECH", "CIVIL"]).delete()
+
+                # 3. Seed Departments
                 departments_data = [
-                    ("CSE", "Computer Science & Engineering"),
+                    # Mandatory Engineering Departments
                     ("IT", "Information Technology"),
+                    ("CSE", "Computer Science & Engineering"),
                     ("ECE", "Electronics & Communication Engineering"),
                     ("EEE", "Electrical & Electronics Engineering"),
-                    ("MECH", "Mechanical Engineering"),
-                    ("CIVIL", "Civil Engineering"),
+                    ("ME", "Mechanical Engineering"),
+                    ("CE", "Civil Engineering"),
+                    # Additional Departments
                     ("AIDS", "Artificial Intelligence & Data Science"),
                     ("AIML", "Artificial Intelligence & Machine Learning"),
+                    ("CSBS", "Computer Science & Business Systems"),
+                    ("BME", "Biomedical Engineering"),
+                    ("AERO", "Aeronautical Engineering"),
+                    ("AUTO", "Automobile Engineering"),
+                    ("MTRX", "Mechatronics Engineering"),
+                    ("RA", "Robotics & Automation"),
+                    ("CHE", "Chemical Engineering"),
+                    # Keep MCA and MBA for existing data support
                     ("MCA", "Master of Computer Applications"),
                     ("MBA", "Master of Business Administration"),
                 ]
@@ -51,68 +67,81 @@ class Command(BaseCommand):
                         code=code,
                         defaults={"name": name, "status": "ACTIVE"}
                     )
+                    # Update name if code exists but name is old/different
+                    if not created and dept.name != name:
+                        dept.name = name
+                        dept.save()
                     departments_map[code] = dept
                     if created:
                         self.stdout.write(self.style.SUCCESS(f"Created Department: {name} ({code})"))
-                    else:
-                        self.stdout.write(f"Department already exists: {name} ({code})")
-
-                # 3. Seed Courses
-                courses_data = [
-                    ("BTECH-CSE", "Bachelor of Technology in CSE", "CSE", 4, 8),
-                    ("BTECH-IT", "Bachelor of Technology in IT", "IT", 4, 8),
-                    ("BTECH-ECE", "Bachelor of Technology in ECE", "ECE", 4, 8),
-                    ("BTECH-EEE", "Bachelor of Technology in EEE", "EEE", 4, 8),
-                    ("BTECH-MECH", "Bachelor of Technology in MECH", "MECH", 4, 8),
-                    ("BTECH-CIVIL", "Bachelor of Technology in CIVIL", "CIVIL", 4, 8),
-                    ("BTECH-AIDS", "Bachelor of Technology in AIDS", "AIDS", 4, 8),
-                    ("BTECH-AIML", "Bachelor of Technology in AIML", "AIML", 4, 8),
-                    ("MCA", "Master of Computer Applications", "MCA", 2, 4),
-                    ("MBA", "Master of Business Administration", "MBA", 2, 4),
+                
+                # 4. Seed Degrees (Courses) and their semesters/sections
+                degrees_data = [
+                    ("BE", "Bachelor of Engineering", 4, 8),
+                    ("BTECH", "Bachelor of Technology", 4, 8),
+                    ("ME", "Master of Engineering", 2, 4),
+                    ("MTECH", "Master of Technology", 2, 4),
+                    ("DIPLOMA", "Diploma", 3, 6),
+                    ("PHD", "Doctor of Philosophy", 3, 6),
                 ]
                 
-                for code, name, dept_code, duration_years, total_semesters in courses_data:
-                    dept = departments_map[dept_code]
-                    course, created = Course.objects.get_or_create(
-                        code=code,
-                        defaults={
-                            "name": name,
-                            "department": dept,
-                            "duration_years": duration_years,
-                            "total_semesters": total_semesters,
-                            "status": "ACTIVE"
-                        }
-                    )
-                    if created:
-                        self.stdout.write(self.style.SUCCESS(f"Created Course: {name} ({code})"))
+                # Populate standard degrees for all engineering departments
+                for code, dept_name in departments_data:
+                    # MCA offers MCA, MBA offers MBA
+                    if code == "MCA":
+                        course_definitions = [("MCA", "Master of Computer Applications", 2, 4)]
+                    elif code == "MBA":
+                        course_definitions = [("MBA", "Master of Business Administration", 2, 4)]
                     else:
-                        self.stdout.write(f"Course already exists: {name} ({code})")
-
-                    # 4. Automatically create Semesters & Sections
-                    for sem_num in range(1, total_semesters + 1):
-                        semester, sem_created = Semester.objects.get_or_create(
-                            course=course,
-                            number=sem_num,
+                        course_definitions = [
+                            (deg_code, deg_fullname, duration, sem_count)
+                            for deg_code, deg_fullname, duration, sem_count in degrees_data
+                        ]
+                    
+                    dept = departments_map[code]
+                    for deg_code, deg_fullname, duration, sem_count in course_definitions:
+                        course_code = f"{deg_code}-{code}" if deg_code not in ["MCA", "MBA"] else deg_code
+                        course_name = f"{deg_fullname} in {dept.name}" if deg_code not in ["MCA", "MBA"] else deg_fullname
+                        
+                        course, created = Course.objects.get_or_create(
+                            code=course_code,
                             defaults={
-                                "academic_year": academic_year,
+                                "name": course_name,
+                                "department": dept,
+                                "duration_years": duration,
+                                "total_semesters": sem_count,
                                 "status": "ACTIVE"
                             }
                         )
-                        if sem_created:
-                            self.stdout.write(self.style.SUCCESS(f"  Created Semester {sem_num} for {code}"))
+                        # Sync course name if old BTECH names exist
+                        if not created and course.name != course_name:
+                            course.name = course_name
+                            course.save()
+                            
+                        if created:
+                            self.stdout.write(self.style.SUCCESS(f"Created Course: {course_name} ({course_code})"))
 
-                        # 5. Automatically create Sections A, B, C
-                        for sec_name in ["A", "B", "C"]:
-                            section, sec_created = Section.objects.get_or_create(
-                                semester=semester,
-                                name=sec_name,
+                        # 5. Automatically create Semesters & Sections
+                        for sem_num in range(1, sem_count + 1):
+                            semester, sem_created = Semester.objects.get_or_create(
+                                course=course,
+                                number=sem_num,
                                 defaults={
-                                    "department": dept,
-                                    "capacity": 60
+                                    "academic_year": academic_year,
+                                    "status": "ACTIVE"
                                 }
                             )
-                            if sec_created:
-                                self.stdout.write(self.style.SUCCESS(f"    Created Section {sec_name} for Sem {sem_num} ({code})"))
+                            
+                            # Automatically create Sections A, B, C
+                            for sec_name in ["A", "B", "C"]:
+                                section, sec_created = Section.objects.get_or_create(
+                                    semester=semester,
+                                    name=sec_name,
+                                    defaults={
+                                        "department": dept,
+                                        "capacity": 60
+                                    }
+                                )
 
             self.stdout.write(self.style.SUCCESS("Database seeding completed successfully!"))
             

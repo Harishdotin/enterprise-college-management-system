@@ -2,12 +2,20 @@ import re
 from django import forms
 from django.core.exceptions import ValidationError
 from .models import Student
+from academics.models import Department, Course, Semester
 
 class StudentForm(forms.ModelForm):
     """
     Form for Admins and Staff to create/update Student records.
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['department'].queryset = Department.objects.all().order_by('name')
+        self.fields['course'].queryset = Course.objects.all().order_by('name')
+        self.fields['semester'].queryset = Semester.objects.all().order_by('course__code', 'number')
+
     class Meta:
+
         model = Student
         exclude = ('user', 'created_by')
         widgets = {

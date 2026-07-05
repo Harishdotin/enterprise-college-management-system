@@ -23,7 +23,7 @@ class AcademicYear(models.Model):
         super().save(*args, **kwargs)
         
     def __str__(self):
-        return f"{self.academic_year} ({'Active' if self.is_active else 'Inactive'})"
+        return f"Semester {self.number:02d}"
 
 
 class Department(models.Model):
