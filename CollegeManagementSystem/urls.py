@@ -19,9 +19,11 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect
+from dashboard import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("db-check/", views.db_check),
     path('', lambda request: redirect('dashboard_home'), name='root_redirect'),
     path('accounts/', include('accounts.urls')),
     path('dashboard/', include('dashboard.urls')),
@@ -34,7 +36,7 @@ urlpatterns = [
     path('fees/', include('fees.urls')),
     path('notifications/', include('notifications.urls')),
     path('assignments/', include('assignments.urls')),
-    path('ai/', include('ai_assistant.urls')),
+    path('ai/', include('ai_assistant.urls')),  
 ]
 
 if settings.DEBUG:

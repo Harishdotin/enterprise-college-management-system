@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from accounts.decorators import role_required
 from students.models import Student
 from staff.models import Staff
+from django.http import HttpResponse
+from django.db import connection
 
 @login_required
 def dashboard_home_view(request):
@@ -82,3 +84,9 @@ def student_dashboard_view(request):
         ]
     }
     return render(request, 'dashboard/student.html', context)
+
+def db_check(request):
+    return HttpResponse(
+        f"ENGINE: {connection.settings_dict['ENGINE']}<br>"
+        f"NAME: {connection.settings_dict['NAME']}"
+    )
