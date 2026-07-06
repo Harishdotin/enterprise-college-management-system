@@ -31,9 +31,9 @@
         <form method="POST" action="{% url 'login' %}">
             {% csrf_token %}
             <div class="form-group">
-                <label for="username" class="form-label">Username</label>
+                <label for="username" class="form-label">Register Number / Employee ID</label>
                 <div class="input-container">
-                    <input type="text" name="username" id="username" class="form-input" placeholder="Enter your username" required autofocus>
+                    <input type="text" name="username" id="username" class="form-input" placeholder="Enter your Register number / Employee ID" required autofocus>
                     <i class="fa-regular fa-user"></i>
                 </div>
             </div>
