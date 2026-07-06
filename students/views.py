@@ -82,6 +82,10 @@ class StudentCreateView(LoginRequiredMixin, RoleRequiredMixin, CreateView):
     success_url = reverse_lazy('student_list')
     roles = ['SUPER_ADMIN', 'STAFF']
 
+    def get(self, request, *args, **kwargs):
+        print("Departments in DB:", Department.objects.count())
+        return super().get(request, *args, **kwargs)
+
     def form_valid(self, form):
         try:
             with transaction.atomic():
