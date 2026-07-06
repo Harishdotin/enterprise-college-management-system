@@ -149,10 +149,20 @@ class AIService:
             }
 
         except Exception as e:
+            import traceback
+            traceback.print_exc()   # <-- Render logs-la full error varum
+
             execution_time = int((time.time() - start_time) * 1000)
-            AILogger.log_request(user_name, self.provider_name, len(raw_prompt), execution_time, str(e))
+            AILogger.log_request(
+                user_name,
+                self.provider_name,
+                len(raw_prompt),
+                execution_time,
+                str(e)
+            )
+    
             return {
                 "status": "error",
                 "error_type": "SYSTEM_ERROR",
-                "message": "An unexpected system error occurred while generating response."
+                "message": str(e)   # Temporary debug
             }
