@@ -11,6 +11,7 @@ from accounts.decorators import RoleRequiredMixin
 from .models import Staff
 from .forms import StaffForm, StaffProfileForm
 from academics.models import Department
+import traceback 
 
 User = get_user_model()
 
@@ -89,16 +90,24 @@ class StaffCreateView(LoginRequiredMixin, RoleRequiredMixin, CreateView):
                 )
                 
                 # Create Staff Profile
+                # Create Staff Profile
                 staff = form.save(commit=False)
                 staff.user = user
                 staff.created_by = self.request.user
                 staff.save()
                 
-                messages.success(self.request, f"Staff member {staff.full_name} registered successfully. Default login password is 'Password@123'.")
-                return redirect(self.get_success_url())
-        except Exception as e:
-            form.add_error(None, f"Error creating user account: {str(e)}")
-            return self.form_invalid(form)
+                messages.success(
+                    self.request,
+                    f"Staff member {staff.full_name} registered successfully. Default login password is 'Password@123'."
+                )
+                
+                return redirect(self.success_url)
+          # <-- add this at the top of staff/views.py
+        
+        
+        except Exception:
+            traceback.print_exc()
+            raise
 
 
 class StaffUpdateView(LoginRequiredMixin, RoleRequiredMixin, UpdateView):
