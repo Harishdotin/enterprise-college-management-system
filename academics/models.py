@@ -23,7 +23,7 @@ class AcademicYear(models.Model):
         super().save(*args, **kwargs)
         
     def __str__(self):
-        return f"Semester {self.number:02d}"
+        return f"{self.academic_year}"
 
 
 class Department(models.Model):
@@ -71,7 +71,9 @@ class Semester(models.Model):
         ordering = ['number']
         
     def __str__(self):
-        return f"{self.course.code} - Semester {self.number} ({self.academic_year.academic_year})"
+        year = self.academic_year.academic_year if self.academic_year else "No Academic Year"
+        course = self.course.code if self.course else "No Course"
+        return f"{course} - Semester {self.number} ({year})"
 
 
 class Section(models.Model):
