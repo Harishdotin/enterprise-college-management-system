@@ -2,11 +2,24 @@ from django.contrib.auth.models import AbstractUser, UserManager as DjangoUserMa
 from django.db import models
 
 class UserManager(DjangoUserManager):
+
+    def create_user(self, username, email=None, password=None, **extra_fields):
+        if not email:
+            email = ''
+        extra_fields.setdefault('is_staff', False)
+        extra_fields.setdefault('is_superuser', False)
+
+        user = self.model(username=username, email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
     def create_superuser(self, username, email=None, password=None, **extra_fields):
         extra_fields.setdefault('role', 'SUPER_ADMIN')
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        return super().create_superuser(username, email, password, **extra_fields)
+
+        return self.create_user(username, email, password, **extra_fields)
 
 class User(AbstractUser):
     class Role(models.TextChoices):
