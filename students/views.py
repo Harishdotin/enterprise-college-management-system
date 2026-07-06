@@ -12,6 +12,9 @@ from .models import Student
 from .forms import StudentForm, StudentProfileForm
 from academics.models import Department, Course, Semester
 
+from django.http import HttpResponse
+
+
 User = get_user_model()
 
 class StudentListView(LoginRequiredMixin, RoleRequiredMixin, ListView):
@@ -81,6 +84,15 @@ class StudentCreateView(LoginRequiredMixin, RoleRequiredMixin, CreateView):
     template_name = 'students/student_form.html'
     success_url = reverse_lazy('student_list')
     roles = ['SUPER_ADMIN', 'STAFF']
+
+    def get(self, request, *args, **kwargs):
+        return HttpResponse(
+            f"""
+Departments: {Department.objects.count()}<br>
+Courses: {Course.objects.count()}<br>
+Semesters: {Semester.objects.count()}
+"""
+        )
 
     def get(self, request, *args, **kwargs):
         print("Departments in DB:", Department.objects.count())
