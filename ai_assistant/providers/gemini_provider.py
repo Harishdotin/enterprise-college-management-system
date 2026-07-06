@@ -5,6 +5,10 @@ from .base_provider import BaseAIProvider
 
 
 class GeminiProvider(BaseAIProvider):
+    
+
+    print("GEMINI_API_KEY exists:", bool(os.getenv("GEMINI_API_KEY")))
+    print("GEMINI_API_KEY length:", len(os.getenv("GEMINI_API_KEY", "AQ.AxxxxxIsoXxxxxxfT3O1NXgzxxxxxFdaauH9UvAba2ff-xxxxx")))
 
     def __init__(self, api_key: str = None) -> None:
         self.api_key = api_key or os.getenv("GEMINI_API_KEY", "")
